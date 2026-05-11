@@ -249,8 +249,8 @@ public class MainActivity extends AppCompatActivity {
             // Restore UI when returning to full screen
             if (getSupportActionBar() != null) getSupportActionBar().show();
             
-            // Restore status bar height (10dp)
-            int heightPx = (int) (10 * getResources().getDisplayMetrics().density);
+            // Restore status bar height (20dp)
+            int heightPx = (int) (20 * getResources().getDisplayMetrics().density);
             statusBar.setLayoutParams(new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
                     androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
                     heightPx));

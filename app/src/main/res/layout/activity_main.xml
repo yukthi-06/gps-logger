@@ -44,7 +44,7 @@
             <View
                 android:id="@+id/statusBar"
                 android:layout_width="match_parent"
-                android:layout_height="10dp"
+                android:layout_height="20dp"
                 android:background="#FF0000"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
