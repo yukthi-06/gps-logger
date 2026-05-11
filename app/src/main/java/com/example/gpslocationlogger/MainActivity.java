@@ -426,22 +426,28 @@ public class MainActivity extends AppCompatActivity {
 
         List<JSONObject> records = locationService.getLocationRecords();
         
-        // Determine status color
+        // Determine status color and text
         int statusColor;
+        String statusText;
         if (!isTracking) {
             statusColor = 0xFFFF0000; // RED
+            statusText = "Idle / Stopped";
         } else if (locationService.isPaused()) {
             statusColor = 0xFF0000FF; // BLUE
+            statusText = "Logging Paused";
         } else {
             long lastUpdate = locationService.getLastLocationTimeMillis();
             long now = System.currentTimeMillis();
             if (lastUpdate > 0 && (now - lastUpdate) < 15000) { // 15 seconds threshold
                 statusColor = 0xFF00FF00; // GREEN
+                statusText = "Tracking... (" + records.size() + " fixes)";
             } else {
                 statusColor = 0xFFA52A2A; // BROWN (SaddleBrown)
+                statusText = "Waiting for GPS...";
             }
         }
         statusBar.setBackgroundColor(statusColor);
+        tvStatus.setText(statusText);
 
         if (!records.isEmpty()) {
             JSONObject last = records.get(records.size() - 1);
@@ -449,7 +455,6 @@ public class MainActivity extends AppCompatActivity {
                 double lat = last.getDouble("latitude");
                 double lon = last.getDouble("longitude");
                 tvCoordinates.setText(String.format("Lat: %.6f   Lon: %.6f", lat, lon));
-                tvStatus.setText(getString(R.string.status_tracking) + " (" + records.size() + " fix(es))");
             } catch (JSONException e) {
                 Log.e(TAG, "UI update error", e);
             }

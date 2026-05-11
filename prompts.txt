@@ -15,6 +15,8 @@ more prompts
 		BROWN = Not receving GPS locations
 		RED   = User has STOPPED logging.  Or User has not started logging.
 	The same color, along with App Icon, should be the only thing shown when in PIP mode.
+*	make the LAT and LON text smaller, so that it fits to single line. Make the GPS co-ordinates field accordingly smaller
+*	Make the text for ACTIVITY view to be "Tracking... (? fixes)".. so that the whole text comes in one line.  This will stop the field to keep changing shapes because of 1 line and two lines....
 
 
 
