@@ -258,6 +258,12 @@ public class MainActivity extends AppCompatActivity {
             ivPipIcon.setVisibility(View.GONE);
             findViewById(R.id.cardStatus).setVisibility(View.VISIBLE);
             findViewById(R.id.cardCoordinates).setVisibility(View.VISIBLE);
+            
+            // Restore visibility of buttons and info card
+            btnStartTracking.setVisibility(View.VISIBLE);
+            btnPauseTracking.setVisibility(View.VISIBLE);
+            btnEndTracking.setVisibility(View.VISIBLE);
+            
             setTrackingUiState(isTracking);
             findViewById(R.id.tvSavePath).setVisibility(lastSavedUri != null ? View.VISIBLE : View.GONE);
         }
