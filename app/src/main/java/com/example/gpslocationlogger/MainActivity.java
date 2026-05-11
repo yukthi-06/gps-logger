@@ -112,9 +112,7 @@ public class MainActivity extends AppCompatActivity {
     private final Runnable uiUpdater = new Runnable() {
         @Override
         public void run() {
-            if (isBound && locationService != null) {
-                updateUiFromService();
-            }
+            updateUiFromService();
             uiHandler.postDelayed(this, 1000);
         }
     };
@@ -414,6 +412,7 @@ public class MainActivity extends AppCompatActivity {
 
         isTracking = false;
         setTrackingUiState(false);
+        updateUiFromService(); // Refresh color to RED
         Log.d(TAG, "Tracking stopped. Records: " + records.size());
         Toast.makeText(this, R.string.label_end_tracking, Toast.LENGTH_SHORT).show();
     }
