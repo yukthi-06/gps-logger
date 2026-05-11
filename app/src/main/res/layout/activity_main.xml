@@ -33,9 +33,36 @@
         android:layout_height="match_parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/main_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#F0F2F5">
+
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <!-- Status Bar (Color code)                                               -->
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <View
+                android:id="@+id/statusBar"
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:background="#FF0000"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <!-- PiP Mode App Icon (Hidden by default)                                 -->
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <ImageView
+                android:id="@+id/ivPipIcon"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/ic_launcher_img"
+                android:visibility="gone"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <!-- ══════════════════════════════════════════════════════════════════════ -->
             <!-- ② Activity status card                                                -->
@@ -49,7 +76,7 @@
                 app:cardCornerRadius="12dp"
                 app:cardElevation="3dp"
                 app:cardBackgroundColor="#FFFFFF"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/statusBar"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
@@ -204,6 +231,26 @@
                 app:layout_constraintEnd_toEndOf="parent" />
 
             <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <!-- ⑤ Pause Tracking                                                      -->
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <Button
+                android:id="@+id/btnPauseTracking"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/label_pause_tracking"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingVertical="14dp"
+                android:enabled="false"
+                android:backgroundTint="#0000FF"
+                app:cornerRadius="12dp"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginTop="12dp"
+                app:layout_constraintTop_toBottomOf="@id/btnStartTracking"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
             <!-- ⑤ End Tracking — bottom button                                        -->
             <!-- ══════════════════════════════════════════════════════════════════════ -->
             <Button
@@ -219,7 +266,7 @@
                 app:cornerRadius="12dp"
                 android:layout_marginHorizontal="24dp"
                 android:layout_marginTop="12dp"
-                app:layout_constraintTop_toBottomOf="@id/btnStartTracking"
+                app:layout_constraintTop_toBottomOf="@id/btnPauseTracking"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 

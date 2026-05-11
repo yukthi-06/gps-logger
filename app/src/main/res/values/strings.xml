@@ -10,6 +10,8 @@
     <string name="status_waiting">Waiting for first fix…</string>
     <string name="status_tracking">Tracking in progress…</string>
     <string name="label_start_tracking">Start Tracking</string>
+    <string name="label_pause_tracking">Pause Logging</string>
+    <string name="label_resume_tracking">Resume Logging</string>
     <string name="label_end_tracking">End Tracking</string>
     <string name="label_save_path">📁  Files saved to:  Download/GPSLocationLogger/</string>
 

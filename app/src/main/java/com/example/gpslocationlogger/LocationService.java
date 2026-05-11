@@ -56,6 +56,8 @@ public class LocationService extends Service {
     private final List<JSONObject> locationRecords = new ArrayList<>();
 
     private boolean isTracking = false;
+    private boolean isPaused = false;
+    private long lastLocationTimeMillis = 0;
 
     /**
      * Interface for MainActivity to bind and get live data.
@@ -130,6 +132,7 @@ public class LocationService extends Service {
             record.put("latitude", lat);
             record.put("longitude", lon);
             record.put("timestamp", time);
+            lastLocationTimeMillis = System.currentTimeMillis();
             locationRecords.add(record);
 
             // Update notification with count
@@ -185,7 +188,26 @@ public class LocationService extends Service {
         stopForeground(true);
         stopSelf();
         isTracking = false;
+        isPaused = false;
+        lastLocationTimeMillis = 0;
         locationRecords.clear();
+    }
+
+    public boolean isPaused() {
+        return isPaused;
+    }
+
+    public void setPaused(boolean paused) {
+        isPaused = paused;
+        if (isPaused) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+        } else {
+            startLocationUpdates();
+        }
+    }
+
+    public long getLastLocationTimeMillis() {
+        return lastLocationTimeMillis;
     }
 
     @Override

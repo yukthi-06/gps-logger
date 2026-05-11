@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
     // ── UI ──────────────────────────────────────────────────────────────────
     private Button btnStartTracking;
+    private Button btnPauseTracking;
     private Button btnEndTracking;
     private TextView tvStatus;
     private TextView tvCoordinates;
@@ -94,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private Toolbar toolbar;
+    private View statusBar;
+    private ImageView ivPipIcon;
+    private View mainContent;
 
     // ── Service ─────────────────────────────────────────────────────────────
     private LocationService locationService;
@@ -143,14 +147,19 @@ public class MainActivity extends AppCompatActivity {
 
         // Bind views
         btnStartTracking = findViewById(R.id.btnStartTracking);
+        btnPauseTracking = findViewById(R.id.btnPauseTracking);
         btnEndTracking   = findViewById(R.id.btnEndTracking);
         tvStatus         = findViewById(R.id.tvStatus);
         tvCoordinates    = findViewById(R.id.tvCoordinates);
         etTrackingInfo   = findViewById(R.id.etTrackingInfo);
         cardTrackingInfo = findViewById(R.id.cardTrackingInfo);
+        statusBar        = findViewById(R.id.statusBar);
+        ivPipIcon        = findViewById(R.id.ivPipIcon);
+        mainContent      = findViewById(R.id.main_content);
 
         // Button listeners
         btnStartTracking.setOnClickListener(v -> onStartTrackingClicked());
+        btnPauseTracking.setOnClickListener(v -> onPauseTrackingClicked());
         btnEndTracking.setOnClickListener(v -> onEndTrackingClicked());
 
         // Setup Toolbar
@@ -217,32 +226,39 @@ public class MainActivity extends AppCompatActivity {
         if (isInPictureInPictureMode) {
             // Hide non-essential UI for PiP
             if (getSupportActionBar() != null) getSupportActionBar().hide();
+            
+            // Hide EVERYTHING except the status bar and the icon
+            findViewById(R.id.cardStatus).setVisibility(View.GONE);
+            findViewById(R.id.cardCoordinates).setVisibility(View.GONE);
             findViewById(R.id.btnStartTracking).setVisibility(View.GONE);
+            findViewById(R.id.btnPauseTracking).setVisibility(View.GONE);
             findViewById(R.id.btnEndTracking).setVisibility(View.GONE);
             findViewById(R.id.cardTrackingInfo).setVisibility(View.GONE);
             findViewById(R.id.tvSavePath).setVisibility(View.GONE);
             
-            // Hide labels to save space
-            findViewById(R.id.tvTitleActivity).setVisibility(View.GONE);
-            findViewById(R.id.tvTitleCoordinates).setVisibility(View.GONE);
-
-            // Make coordinates text larger for better visibility in small window
-            ((TextView)findViewById(R.id.tvCoordinates)).setTextSize(14f);
-            ((TextView)findViewById(R.id.tvStatus)).setTextSize(12f);
+            // Show the PiP icon
+            ivPipIcon.setVisibility(View.VISIBLE);
+            
+            // Make the status bar fill the background (or just use the background of mainContent)
+            statusBar.setLayoutParams(new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT));
 
         } else {
             // Restore UI when returning to full screen
             if (getSupportActionBar() != null) getSupportActionBar().show();
+            
+            // Restore status bar height (10dp)
+            int heightPx = (int) (10 * getResources().getDisplayMetrics().density);
+            statusBar.setLayoutParams(new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
+                    heightPx));
+
+            ivPipIcon.setVisibility(View.GONE);
+            findViewById(R.id.cardStatus).setVisibility(View.VISIBLE);
+            findViewById(R.id.cardCoordinates).setVisibility(View.VISIBLE);
             setTrackingUiState(isTracking);
             findViewById(R.id.tvSavePath).setVisibility(lastSavedUri != null ? View.VISIBLE : View.GONE);
-            
-            // Show labels again
-            findViewById(R.id.tvTitleActivity).setVisibility(View.VISIBLE);
-            findViewById(R.id.tvTitleCoordinates).setVisibility(View.VISIBLE);
-
-            // Restore text sizes
-            ((TextView)findViewById(R.id.tvCoordinates)).setTextSize(12f);
-            ((TextView)findViewById(R.id.tvStatus)).setTextSize(15f);
         }
     }
 
@@ -293,6 +309,14 @@ public class MainActivity extends AppCompatActivity {
     // ── Button Handlers ────────────────────────────────────────────────────
     private void onStartTrackingClicked() {
         checkAndRequestPermission();
+    }
+
+    private void onPauseTrackingClicked() {
+        if (isBound && locationService != null) {
+            boolean isPaused = locationService.isPaused();
+            locationService.setPaused(!isPaused);
+            setTrackingUiState(true);
+        }
     }
 
     private void onEndTrackingClicked() {
@@ -389,7 +413,30 @@ public class MainActivity extends AppCompatActivity {
 
     /** Updates the UI with the latest data from the service. */
     private void updateUiFromService() {
+        if (!isBound || locationService == null) {
+            statusBar.setBackgroundColor(0xFFFF0000); // RED
+            return;
+        }
+
         List<JSONObject> records = locationService.getLocationRecords();
+        
+        // Determine status color
+        int statusColor;
+        if (!isTracking) {
+            statusColor = 0xFFFF0000; // RED
+        } else if (locationService.isPaused()) {
+            statusColor = 0xFF0000FF; // BLUE
+        } else {
+            long lastUpdate = locationService.getLastLocationTimeMillis();
+            long now = System.currentTimeMillis();
+            if (lastUpdate > 0 && (now - lastUpdate) < 15000) { // 15 seconds threshold
+                statusColor = 0xFF00FF00; // GREEN
+            } else {
+                statusColor = 0xFFA52A2A; // BROWN (SaddleBrown)
+            }
+        }
+        statusBar.setBackgroundColor(statusColor);
+
         if (!records.isEmpty()) {
             JSONObject last = records.get(records.size() - 1);
             try {
@@ -608,7 +655,18 @@ public class MainActivity extends AppCompatActivity {
      */
     private void setTrackingUiState(boolean tracking) {
         btnStartTracking.setEnabled(!tracking);
+        btnPauseTracking.setEnabled(tracking);
         btnEndTracking.setEnabled(tracking);
+
+        if (tracking && isBound && locationService != null) {
+            boolean isPaused = locationService.isPaused();
+            btnPauseTracking.setText(isPaused ? R.string.label_resume_tracking : R.string.label_pause_tracking);
+            btnPauseTracking.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                    isPaused ? 0xFF4CAF50 : 0xFF2196F3)); // Green for Resume, Blue for Pause
+        } else {
+            btnPauseTracking.setText(R.string.label_pause_tracking);
+            btnPauseTracking.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF2196F3));
+        }
 
         if (cardTrackingInfo != null) {
             cardTrackingInfo.setVisibility(tracking ? View.VISIBLE : View.GONE);

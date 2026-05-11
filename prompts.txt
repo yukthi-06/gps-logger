@@ -8,8 +8,13 @@ Give it as a single prompt to give to an agent to achieve this
 store the timestamp as ISO format instead of milliseconds since epoc
 --------------------------------------------------------------------------------------------
 more prompts
-*	When app is minimized, it should be floating on screen (just like google maps does)
-
+*	When app is minimized, it should be floating on screen ie.. PIP mode (just like google maps does)
+*	Have a status bar on top, just to show status as COLOR code... 
+		GREEN = GPS locations is being received and logging to file
+		BLUE  = GPS logging paused by user
+		BROWN = Not receving GPS locations
+		RED   = User has STOPPED logging.  Or User has not started logging.
+	The same color, along with App Icon, should be the only thing shown when in PIP mode.
 
 
 
