@@ -61,6 +61,7 @@
 
                     <!-- Card label -->
                     <TextView
+                        android:id="@+id/tvTitleActivity"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/title_activity"
@@ -108,6 +109,7 @@
 
                     <!-- Card label -->
                     <TextView
+                        android:id="@+id/tvTitleCoordinates"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/title_coordinates"

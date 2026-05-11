@@ -24,8 +24,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.app.PictureInPictureParams;
+import android.content.res.Configuration;
+import android.util.Rational;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -185,6 +189,60 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        // If we are tracking, enter Picture-in-Picture mode when the user leaves the app (home/recents)
+        if (isTracking && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            enterPipMode();
+        }
+    }
+
+    private void enterPipMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
+            // Optional: set aspect ratio (e.g., 1:1 or 16:9)
+            Rational aspectRatio = new Rational(1, 1);
+            builder.setAspectRatio(aspectRatio);
+            enterPictureInPictureMode(builder.build());
+        }
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+        if (isInPictureInPictureMode) {
+            // Hide non-essential UI for PiP
+            if (getSupportActionBar() != null) getSupportActionBar().hide();
+            findViewById(R.id.btnStartTracking).setVisibility(View.GONE);
+            findViewById(R.id.btnEndTracking).setVisibility(View.GONE);
+            findViewById(R.id.cardTrackingInfo).setVisibility(View.GONE);
+            findViewById(R.id.tvSavePath).setVisibility(View.GONE);
+            
+            // Hide labels to save space
+            findViewById(R.id.tvTitleActivity).setVisibility(View.GONE);
+            findViewById(R.id.tvTitleCoordinates).setVisibility(View.GONE);
+
+            // Make coordinates text larger for better visibility in small window
+            ((TextView)findViewById(R.id.tvCoordinates)).setTextSize(14f);
+            ((TextView)findViewById(R.id.tvStatus)).setTextSize(12f);
+
+        } else {
+            // Restore UI when returning to full screen
+            if (getSupportActionBar() != null) getSupportActionBar().show();
+            setTrackingUiState(isTracking);
+            findViewById(R.id.tvSavePath).setVisibility(lastSavedUri != null ? View.VISIBLE : View.GONE);
+            
+            // Show labels again
+            findViewById(R.id.tvTitleActivity).setVisibility(View.VISIBLE);
+            findViewById(R.id.tvTitleCoordinates).setVisibility(View.VISIBLE);
+
+            // Restore text sizes
+            ((TextView)findViewById(R.id.tvCoordinates)).setTextSize(12f);
+            ((TextView)findViewById(R.id.tvStatus)).setTextSize(15f);
         }
     }
 

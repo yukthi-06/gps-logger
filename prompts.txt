@@ -7,6 +7,14 @@ develop the app in java
 Give it as a single prompt to give to an agent to achieve this
 store the timestamp as ISO format instead of milliseconds since epoc
 --------------------------------------------------------------------------------------------
+more prompts
+*	When app is minimized, it should be floating on screen (just like google maps does)
+
+
+
+
+--------------------------------------------------------------------------------------------
+
 output
 
 You are an expert Android developer. Build a complete Android application in **Java (not Kotlin)** using Android Studio.
