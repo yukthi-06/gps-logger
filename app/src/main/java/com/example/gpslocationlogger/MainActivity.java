@@ -212,8 +212,8 @@ public class MainActivity extends AppCompatActivity {
     private void enterPipMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
-            // Optional: set aspect ratio (e.g., 1:1 or 16:9)
-            Rational aspectRatio = new Rational(1, 1);
+            // Set a thinner portrait aspect ratio (similar to Google Maps)
+            Rational aspectRatio = new Rational(2, 3);
             builder.setAspectRatio(aspectRatio);
             enterPictureInPictureMode(builder.build());
         }
