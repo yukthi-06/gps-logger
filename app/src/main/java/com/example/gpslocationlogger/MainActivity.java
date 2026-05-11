@@ -680,7 +680,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (cardTrackingInfo != null) {
-            cardTrackingInfo.setVisibility(tracking ? View.VISIBLE : View.GONE);
+            // Keep visible at all times to prevent layout shifting
+            cardTrackingInfo.setVisibility(View.VISIBLE);
         }
 
         if (tracking) {

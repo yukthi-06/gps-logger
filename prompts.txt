@@ -17,7 +17,7 @@ more prompts
 	The same color, along with App Icon, should be the only thing shown when in PIP mode.
 *	make the LAT and LON text smaller, so that it fits to single line. Make the GPS co-ordinates field accordingly smaller
 *	Make the text for ACTIVITY view to be "Tracking... (? fixes)".. so that the whole text comes in one line.  This will stop the field to keep changing shapes because of 1 line and two lines....
-
+*	Keep 'Tracking Info field' visible at all times, so that the buttons dont keep moving up and down
 
 
 --------------------------------------------------------------------------------------------
