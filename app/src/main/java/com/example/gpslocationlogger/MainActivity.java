@@ -211,10 +211,28 @@ public class MainActivity extends AppCompatActivity {
 
     private void enterPipMode() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Make the icon visible and slightly smaller for PiP to encourage a smaller window
+            ivPipIcon.setVisibility(View.VISIBLE);
+            ivPipIcon.getLayoutParams().width = (int) (48 * getResources().getDisplayMetrics().density);
+            ivPipIcon.getLayoutParams().height = (int) (48 * getResources().getDisplayMetrics().density);
+            ivPipIcon.requestLayout();
+            
             PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
-            // Set a thinner portrait aspect ratio (similar to Google Maps)
+            // Reverting to the requested 2:3 aspect ratio
             Rational aspectRatio = new Rational(2, 3);
             builder.setAspectRatio(aspectRatio);
+            
+            // Use the scaled icon as the source rect hint
+            android.graphics.Rect rect = new android.graphics.Rect();
+            ivPipIcon.getGlobalVisibleRect(rect);
+            if (rect.width() > 0 && rect.height() > 0) {
+                builder.setSourceRectHint(rect);
+            }
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                builder.setSeamlessResizeEnabled(false);
+            }
+            
             enterPictureInPictureMode(builder.build());
         }
     }
@@ -235,13 +253,17 @@ public class MainActivity extends AppCompatActivity {
             findViewById(R.id.cardTrackingInfo).setVisibility(View.GONE);
             findViewById(R.id.tvSavePath).setVisibility(View.GONE);
             
-            // Show the PiP icon
+            // Show the PiP icon and ensure it's the smaller size
             ivPipIcon.setVisibility(View.VISIBLE);
+            ivPipIcon.getLayoutParams().width = (int) (48 * getResources().getDisplayMetrics().density);
+            ivPipIcon.getLayoutParams().height = (int) (48 * getResources().getDisplayMetrics().density);
+            ivPipIcon.requestLayout();
             
-            // Make the status bar fill the background (or just use the background of mainContent)
-            statusBar.setLayoutParams(new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
-                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
-                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT));
+            // Make the status bar fill the background
+            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams lp = 
+                (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) statusBar.getLayoutParams();
+            lp.height = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT;
+            statusBar.setLayoutParams(lp);
 
         } else {
             // Restore UI when returning to full screen
@@ -249,9 +271,15 @@ public class MainActivity extends AppCompatActivity {
             
             // Restore status bar height (20dp)
             int heightPx = (int) (20 * getResources().getDisplayMetrics().density);
-            statusBar.setLayoutParams(new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
-                    androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
-                    heightPx));
+            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams lp = 
+                (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) statusBar.getLayoutParams();
+            lp.height = heightPx;
+            statusBar.setLayoutParams(lp);
+
+            // Restore icon size
+            ivPipIcon.getLayoutParams().width = (int) (64 * getResources().getDisplayMetrics().density);
+            ivPipIcon.getLayoutParams().height = (int) (64 * getResources().getDisplayMetrics().density);
+            ivPipIcon.requestLayout();
 
             ivPipIcon.setVisibility(View.GONE);
             findViewById(R.id.cardStatus).setVisibility(View.VISIBLE);
