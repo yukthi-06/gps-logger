@@ -19,6 +19,13 @@ more prompts
 *	Make the text for ACTIVITY view to be "Tracking... (? fixes)".. so that the whole text comes in one line.  This will stop the field to keep changing shapes because of 1 line and two lines....
 *	Keep 'Tracking Info field' visible at all times, so that the buttons dont keep moving up and down
 
+*	Save any MD file created by AI in the project folder itself.
+*	the filename should be suffixed with *_yyyyMMdd.hhmmss
+*	In the tracking info field, place a small "Tick" mark, so that once I type text in the field, and click on this "Tick" mark, the field is frozen and no longer editable
+*	small correction.  Create a folder in the project folder 'Prompts' and create the MD files inside it.  Also, prefix with timestamp, instead of suffix
+*	
+*	
+*	
 
 --------------------------------------------------------------------------------------------
 
