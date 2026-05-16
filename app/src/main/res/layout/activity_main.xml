@@ -195,17 +195,37 @@
                         android:textColor="#888EAB"
                         android:layout_marginBottom="6dp" />
 
-                    <!-- Input for trip name / notes -->
-                    <EditText
-                        android:id="@+id/etTrackingInfo"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/hint_tracking_info"
-                        android:textSize="14sp"
-                        android:textColor="#1A1A2E"
-                        android:background="@android:color/transparent"
-                        android:inputType="textCapSentences"
-                        android:paddingVertical="4dp" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <!-- Input for trip name / notes -->
+                        <EditText
+                            android:id="@+id/etTrackingInfo"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="@string/hint_tracking_info"
+                            android:textSize="14sp"
+                            android:textColor="#1A1A2E"
+                            android:background="@android:color/transparent"
+                            android:inputType="textCapSentences"
+                            android:paddingVertical="4dp" />
+
+                        <ImageView
+                            android:id="@+id/ivLockTrackingInfo"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:padding="4dp"
+                            android:src="@drawable/ic_check"
+                            android:contentDescription="Lock tracking info"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

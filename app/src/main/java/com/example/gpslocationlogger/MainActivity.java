@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private View statusBar;
     private ImageView ivPipIcon;
+    private ImageView ivLockTrackingInfo;
     private View mainContent;
 
     // ── Service ─────────────────────────────────────────────────────────────
@@ -154,12 +155,14 @@ public class MainActivity extends AppCompatActivity {
         cardTrackingInfo = findViewById(R.id.cardTrackingInfo);
         statusBar        = findViewById(R.id.statusBar);
         ivPipIcon        = findViewById(R.id.ivPipIcon);
+        ivLockTrackingInfo = findViewById(R.id.ivLockTrackingInfo);
         mainContent      = findViewById(R.id.main_content);
 
         // Button listeners
         btnStartTracking.setOnClickListener(v -> onStartTrackingClicked());
         btnPauseTracking.setOnClickListener(v -> onPauseTrackingClicked());
         btnEndTracking.setOnClickListener(v -> onEndTrackingClicked());
+        ivLockTrackingInfo.setOnClickListener(v -> onLockTrackingInfoClicked());
 
         // Setup Toolbar
         toolbar = findViewById(R.id.toolbar);
@@ -354,6 +357,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void onEndTrackingClicked() {
         stopTracking();
+    }
+
+    private void onLockTrackingInfoClicked() {
+        if (etTrackingInfo.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Please enter tracking info first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        etTrackingInfo.setEnabled(false);
+        ivLockTrackingInfo.setEnabled(false);
+        ivLockTrackingInfo.setAlpha(0.5f);
+        Toast.makeText(this, "Tracking info locked", Toast.LENGTH_SHORT).show();
     }
 
     /** Checks whether required permissions are granted, requests them if not. */
@@ -561,10 +575,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (lastSavedUri != null) {
-            TextView tvSavePath = findViewById(R.id.tvSavePath);
             tvSavePath.setText("📁 Last saved: " + lastSavedName);
             invalidateOptionsMenu(); // Refresh share icon visibility
             etTrackingInfo.setText(""); // Clear for next session
+            etTrackingInfo.setEnabled(true); // Re-enable for next session
+            ivLockTrackingInfo.setEnabled(true);
+            ivLockTrackingInfo.setAlpha(1.0f);
         }
     }
 
