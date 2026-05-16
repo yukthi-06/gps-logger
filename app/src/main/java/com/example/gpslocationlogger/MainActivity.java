@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private View statusBar;
     private ImageView ivPipIcon;
     private ImageView ivLockTrackingInfo;
+    private TextView tvSavePath;
     private View mainContent;
 
     // ── Service ─────────────────────────────────────────────────────────────
@@ -156,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
         statusBar        = findViewById(R.id.statusBar);
         ivPipIcon        = findViewById(R.id.ivPipIcon);
         ivLockTrackingInfo = findViewById(R.id.ivLockTrackingInfo);
+        tvSavePath       = findViewById(R.id.tvSavePath);
         mainContent      = findViewById(R.id.main_content);
 
         // Button listeners
