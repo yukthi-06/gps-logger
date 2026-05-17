@@ -59,15 +59,24 @@ public class TracksListActivity extends AppCompatActivity {
     }
 
     private void loadTracks() {
-        File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
-        if (!dir.exists() || !dir.isDirectory()) {
-            showEmptyState();
+        File dir = new File("/sdcard/Vypeensoft/GPS_Location_Logger/");
+        
+        if (!dir.exists()) {
+            showEmptyState("Folder does not exist:\n" + dir.getAbsolutePath());
+            return;
+        }
+        if (!dir.isDirectory()) {
+            showEmptyState("Path is not a directory:\n" + dir.getAbsolutePath());
             return;
         }
 
         File[] files = dir.listFiles();
-        if (files == null || files.length == 0) {
-            showEmptyState();
+        if (files == null) {
+            showEmptyState("Cannot read folder (Permission denied?):\n" + dir.getAbsolutePath());
+            return;
+        }
+        if (files.length == 0) {
+            showEmptyState("Folder is empty:\n" + dir.getAbsolutePath());
             return;
         }
 
@@ -108,14 +117,15 @@ public class TracksListActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
 
         if (trackList.isEmpty()) {
-            showEmptyState();
+            showEmptyState("No valid tracks found in folder.");
         } else {
             tvEmptyState.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
     }
 
-    private void showEmptyState() {
+    private void showEmptyState(String message) {
+        tvEmptyState.setText(message);
         tvEmptyState.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
     }
