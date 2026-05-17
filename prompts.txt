@@ -50,7 +50,7 @@ more prompts
 *	download the relevant map tiles for offline use
 *	show download status until download completes
 *	the screen is stuck at 'calculating download size...'
-*	
+*	No change... the screen is still stuck at 'calculating download size...'
 *	
 *	
 *	

@@ -241,19 +241,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 new OfflineManager.CreateOfflineRegionCallback() {
                     @Override
                     public void onCreate(OfflineRegion offlineRegion) {
-                        offlineRegion.setDownloadState(OfflineRegion.STATE_ACTIVE);
                         offlineRegion.setObserver(new OfflineRegion.OfflineRegionObserver() {
                             @Override
                             public void onStatusChanged(OfflineRegionStatus status) {
                                 runOnUiThread(() -> {
+                                    long completed = status.getCompletedResourceCount();
+                                    long required = status.getRequiredResourceCount();
+                                    Log.d(TAG, "Download progress: " + completed + "/" + required + " (complete=" + status.isComplete() + ")");
+
                                     if (status.isComplete()) {
                                         llDownloadProgress.setVisibility(View.GONE);
                                         Toast.makeText(MapActivity.this, "Offline map downloaded successfully!", Toast.LENGTH_SHORT).show();
                                         return;
                                     }
-
-                                    long completed = status.getCompletedResourceCount();
-                                    long required = status.getRequiredResourceCount();
 
                                     if (required > 0) {
                                         pbDownload.setIndeterminate(false);
@@ -286,6 +286,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                                 });
                             }
                         });
+                        offlineRegion.setDownloadState(OfflineRegion.STATE_ACTIVE);
                     }
 
                     @Override
