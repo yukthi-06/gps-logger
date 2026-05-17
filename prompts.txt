@@ -56,6 +56,14 @@ more prompts
 *	maps are downloading offline fine.  But one map shows details, but other map is not showing details(the othe rmp used to show details before implementing offline downloads)
 *	red route line is showing for Track B.  But building names, street names near it was missing.  The same building names were shown before offline option was implemented
 *	Also, FYI : I have also set the Map Style URL to https://tiles.openfreemap.org/styles/liberty
+*	In settings, set the Map tiles url to 'https://tiles.openfreemap.org/styles/liberty' as the default value
+*	
+*	
+*	
+*	
+*	
+*	
+*	
 *	
 *	
 *	

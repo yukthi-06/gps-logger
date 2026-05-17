@@ -77,7 +77,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // Load the configured style URL from SharedPreferences
         SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
-        styleUrl = prefs.getString(SettingsActivity.KEY_MAP_STYLE_URL, SettingsActivity.DEFAULT_MAP_STYLE_URL);
+        String savedStyle = prefs.getString(SettingsActivity.KEY_MAP_STYLE_URL, SettingsActivity.DEFAULT_MAP_STYLE_URL);
+        if (SettingsActivity.OLD_DEFAULT_MAP_STYLE_URL.equals(savedStyle)) {
+            savedStyle = SettingsActivity.DEFAULT_MAP_STYLE_URL;
+            prefs.edit().putString(SettingsActivity.KEY_MAP_STYLE_URL, SettingsActivity.DEFAULT_MAP_STYLE_URL).apply();
+        }
+        styleUrl = savedStyle;
 
         mapView = findViewById(R.id.mapView);
         llDownloadProgress = findViewById(R.id.llDownloadProgress);

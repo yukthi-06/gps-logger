@@ -36,7 +36,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     /** Key for Map Style URL. */
     public static final String KEY_MAP_STYLE_URL = "map_style_url";
-    public static final String DEFAULT_MAP_STYLE_URL = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
+    public static final String DEFAULT_MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
+    public static final String OLD_DEFAULT_MAP_STYLE_URL = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
 
     /** Default interval: 5 seconds. */
     public static final long DEFAULT_INTERVAL_MS = 5_000L;
@@ -117,6 +118,10 @@ public class SettingsActivity extends AppCompatActivity {
 
         // ── 3. Map Style URL Settings ──
         String savedMapStyle = prefs.getString(KEY_MAP_STYLE_URL, DEFAULT_MAP_STYLE_URL);
+        if (savedMapStyle.equals(OLD_DEFAULT_MAP_STYLE_URL)) {
+            savedMapStyle = DEFAULT_MAP_STYLE_URL;
+            prefs.edit().putString(KEY_MAP_STYLE_URL, DEFAULT_MAP_STYLE_URL).apply();
+        }
         etMapStyleUrl.setText(savedMapStyle);
 
         etMapStyleUrl.addTextChangedListener(new TextWatcher() {
