@@ -49,7 +49,7 @@ more prompts
 *	show on map from GPX, KML or JSON file.  Check for files in that order
 *	download the relevant map tiles for offline use
 *	show download status until download completes
-*	
+*	the screen is stuck at 'calculating download size...'
 *	
 *	
 *	
