@@ -39,7 +39,13 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
     public void onBindViewHolder(@NonNull TrackViewHolder holder, int position) {
         TrackItem trackItem = trackList.get(position);
         holder.tvTrackName.setText(trackItem.displayName != null ? trackItem.displayName : trackItem.baseName);
-        holder.tvTrackTimestamp.setText(trackItem.displayTimestamp != null ? trackItem.displayTimestamp : "");
+        
+        if (trackItem.displayTimestamp != null && !trackItem.displayTimestamp.isEmpty()) {
+            holder.tvTrackTimestamp.setText(trackItem.displayTimestamp);
+            holder.tvTrackTimestamp.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvTrackTimestamp.setVisibility(View.GONE);
+        }
         
         String extensionsStr = TextUtils.join(", ", trackItem.extensions);
         holder.tvTrackFiles.setText("Files: " + extensionsStr);

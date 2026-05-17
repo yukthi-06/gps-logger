@@ -220,16 +220,36 @@ public class TracksListActivity extends AppCompatActivity {
                 String timestamp = remainder.substring(0, underscoreIdx);
                 String info = remainder.substring(underscoreIdx + 1);
                 item.displayName = info.replace("_", " ");
-                item.displayTimestamp = timestamp;
+                item.displayTimestamp = formatTimestamp(timestamp);
             } else {
                 // Only timestamp
-                item.displayName = remainder;
-                item.displayTimestamp = remainder;
+                item.displayName = formatTimestamp(remainder);
+                item.displayTimestamp = null;
             }
         } else {
             item.displayName = name;
-            item.displayTimestamp = "";
+            item.displayTimestamp = null;
         }
+    }
+
+    private String formatTimestamp(String rawTimestamp) {
+        // e.g. 2026-05-17T18-15-09.123+05-30 -> 2026-05-17 18:15:09
+        String clean = rawTimestamp;
+        int dotIdx = clean.indexOf('.');
+        if (dotIdx != -1) clean = clean.substring(0, dotIdx);
+        int plusIdx = clean.indexOf('+');
+        if (plusIdx != -1) clean = clean.substring(0, plusIdx);
+
+        // Replace T with space
+        clean = clean.replace("T", " ");
+        // In the time part, replace - with :
+        int spaceIdx = clean.indexOf(' ');
+        if (spaceIdx != -1 && clean.length() > spaceIdx + 1) {
+            String datePart = clean.substring(0, spaceIdx);
+            String timePart = clean.substring(spaceIdx + 1).replace("-", ":");
+            return datePart + " " + timePart;
+        }
+        return clean;
     }
 
     private void onTrackClicked(TrackItem trackItem) {
