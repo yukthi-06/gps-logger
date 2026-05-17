@@ -245,36 +245,45 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         offlineRegion.setObserver(new OfflineRegion.OfflineRegionObserver() {
                             @Override
                             public void onStatusChanged(OfflineRegionStatus status) {
-                                if (status.isComplete()) {
-                                    llDownloadProgress.setVisibility(View.GONE);
-                                    Toast.makeText(MapActivity.this, "Offline map downloaded successfully!", Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
+                                runOnUiThread(() -> {
+                                    if (status.isComplete()) {
+                                        llDownloadProgress.setVisibility(View.GONE);
+                                        Toast.makeText(MapActivity.this, "Offline map downloaded successfully!", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
 
-                                if (status.isRequiredResourceCountPrecise()) {
-                                    pbDownload.setIndeterminate(false);
-                                    double percentage = (100.0 * status.getCompletedResourceCount()) / status.getRequiredResourceCount();
-                                    pbDownload.setProgress((int) Math.round(percentage));
-                                    tvDownloadStatus.setText(String.format("Downloading... %d / %d tiles (%.1f%%)",
-                                            status.getCompletedResourceCount(), status.getRequiredResourceCount(), percentage));
-                                } else {
-                                    pbDownload.setIndeterminate(true);
-                                    tvDownloadStatus.setText("Calculating download size...");
-                                }
+                                    long completed = status.getCompletedResourceCount();
+                                    long required = status.getRequiredResourceCount();
+
+                                    if (required > 0) {
+                                        pbDownload.setIndeterminate(false);
+                                        double percentage = (100.0 * completed) / required;
+                                        pbDownload.setProgress((int) Math.round(percentage));
+                                        tvDownloadStatus.setText(String.format("Downloading... %d / %d tiles (%.1f%%)",
+                                                completed, required, percentage));
+                                    } else {
+                                        pbDownload.setIndeterminate(true);
+                                        tvDownloadStatus.setText("Calculating download size...");
+                                    }
+                                });
                             }
 
                             @Override
                             public void onError(OfflineRegionError error) {
-                                llDownloadProgress.setVisibility(View.GONE);
-                                Log.e(TAG, "Offline region error: " + error.getReason());
-                                Toast.makeText(MapActivity.this, "Error downloading map.", Toast.LENGTH_SHORT).show();
+                                runOnUiThread(() -> {
+                                    llDownloadProgress.setVisibility(View.GONE);
+                                    Log.e(TAG, "Offline region error: " + error.getReason());
+                                    Toast.makeText(MapActivity.this, "Error downloading map.", Toast.LENGTH_SHORT).show();
+                                });
                             }
 
                             @Override
                             public void mapboxTileCountLimitExceeded(long limit) {
-                                llDownloadProgress.setVisibility(View.GONE);
-                                Log.e(TAG, "Tile count exceeded: " + limit);
-                                Toast.makeText(MapActivity.this, "Tile limit exceeded.", Toast.LENGTH_SHORT).show();
+                                runOnUiThread(() -> {
+                                    llDownloadProgress.setVisibility(View.GONE);
+                                    Log.e(TAG, "Tile count exceeded: " + limit);
+                                    Toast.makeText(MapActivity.this, "Tile limit exceeded.", Toast.LENGTH_SHORT).show();
+                                });
                             }
                         });
                     }
