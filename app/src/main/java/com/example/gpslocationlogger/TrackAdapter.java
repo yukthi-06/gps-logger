@@ -38,7 +38,8 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
     @Override
     public void onBindViewHolder(@NonNull TrackViewHolder holder, int position) {
         TrackItem trackItem = trackList.get(position);
-        holder.tvTrackName.setText(trackItem.baseName);
+        holder.tvTrackName.setText(trackItem.displayName != null ? trackItem.displayName : trackItem.baseName);
+        holder.tvTrackTimestamp.setText(trackItem.displayTimestamp != null ? trackItem.displayTimestamp : "");
         
         String extensionsStr = TextUtils.join(", ", trackItem.extensions);
         holder.tvTrackFiles.setText("Files: " + extensionsStr);
@@ -57,11 +58,13 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
 
     public static class TrackViewHolder extends RecyclerView.ViewHolder {
         TextView tvTrackName;
+        TextView tvTrackTimestamp;
         TextView tvTrackFiles;
 
         public TrackViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTrackName = itemView.findViewById(R.id.tvTrackName);
+            tvTrackTimestamp = itemView.findViewById(R.id.tvTrackTimestamp);
             tvTrackFiles = itemView.findViewById(R.id.tvTrackFiles);
         }
     }

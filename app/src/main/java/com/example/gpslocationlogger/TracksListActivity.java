@@ -155,6 +155,7 @@ public class TracksListActivity extends AppCompatActivity {
                 TrackItem trackItem = trackMap.get(baseName);
                 if (trackItem == null) {
                     trackItem = new TrackItem(baseName);
+                    parseTrackItemDetails(trackItem);
                     trackItem.lastModified = file.lastModified();
                     trackMap.put(baseName, trackItem);
                 }
@@ -206,6 +207,29 @@ public class TracksListActivity extends AppCompatActivity {
             return fileName.substring(dotIndex);
         }
         return "";
+    }
+
+    private void parseTrackItemDetails(TrackItem item) {
+        String name = item.baseName;
+        String prefix = "location_logs_";
+        if (name.startsWith(prefix)) {
+            String remainder = name.substring(prefix.length());
+            int underscoreIdx = remainder.indexOf('_');
+            if (underscoreIdx != -1) {
+                // There is tracking info
+                String timestamp = remainder.substring(0, underscoreIdx);
+                String info = remainder.substring(underscoreIdx + 1);
+                item.displayName = info.replace("_", " ");
+                item.displayTimestamp = timestamp;
+            } else {
+                // Only timestamp
+                item.displayName = remainder;
+                item.displayTimestamp = remainder;
+            }
+        } else {
+            item.displayName = name;
+            item.displayTimestamp = "";
+        }
     }
 
     private void onTrackClicked(TrackItem trackItem) {

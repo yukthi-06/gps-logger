@@ -5,6 +5,8 @@ import java.util.List;
 
 public class TrackItem {
     public String baseName;
+    public String displayName;
+    public String displayTimestamp;
     public long lastModified;
     public List<String> extensions;
 

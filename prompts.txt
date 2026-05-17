@@ -31,7 +31,9 @@ more prompts
 	Since for each track there are 3 files(gpx, kml, json), only one item should be shown in the tracks list.
 *	'Tracks List' screen is empty.  It should pick up files from the data folder at /sdcard/Vypeensoft/GPS_Location_Logger/
 *	It says "Folder is empty".  File read permission is not asked at start of app
-*	
+*	Dont show the full filename in the list item text... extract the tracking_info  portion of the file name.. (ie.. skip the 'location_log', skip the time stamp). 
+	If there is no user provided tracking info data, then show the timestamp as list item text.
+	Along with list item name, show timestamp as a small font below it
 *	
 *	
 *	

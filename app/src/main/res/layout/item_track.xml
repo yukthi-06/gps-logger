@@ -34,12 +34,21 @@
                 android:id="@+id/tvTrackName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="location_logs_20260517-120000"
+                android:text="My Trip Name"
                 android:textColor="#1A1A2E"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:ellipsize="middle"
                 android:singleLine="true" />
+
+            <TextView
+                android:id="@+id/tvTrackTimestamp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="2026-05-17T12:00:00"
+                android:textColor="#888EAB"
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/tvTrackFiles"
@@ -48,7 +57,7 @@
                 android:layout_marginTop="4dp"
                 android:text="Files: .gpx, .kml, .json"
                 android:textColor="#888EAB"
-                android:textSize="12sp" />
+                android:textSize="10sp" />
 
         </LinearLayout>
 
