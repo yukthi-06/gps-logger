@@ -1,5 +1,8 @@
 package com.example.gpslocationlogger;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -32,7 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TracksListActivity extends AppCompatActivity {
+public class TracksListActivity extends AppCompatActivity implements TrackAdapter.TrackActionListener {
 
     private static final String TAG = "TracksListActivity";
     private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
@@ -59,7 +62,7 @@ public class TracksListActivity extends AppCompatActivity {
         tvEmptyState = findViewById(R.id.tvEmptyState);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new TrackAdapter(this, trackList, this::onTrackClicked);
+        adapter = new TrackAdapter(this, trackList, this);
         recyclerView.setAdapter(adapter);
 
         checkPermissionsAndLoadTracks();
@@ -252,7 +255,8 @@ public class TracksListActivity extends AppCompatActivity {
         return clean;
     }
 
-    private void onTrackClicked(TrackItem trackItem) {
+    @Override
+    public void onShareClick(TrackItem trackItem) {
         // Find the best file to open/share (e.g. .kml, then .gpx, then .json)
         String extToUse = null;
         if (trackItem.extensions.contains(".kml")) {
@@ -285,8 +289,69 @@ public class TracksListActivity extends AppCompatActivity {
             startActivity(Intent.createChooser(shareIntent, "Share Track"));
         } catch (Exception e) {
             Log.e(TAG, "Error sharing file", e);
-            Toast.makeText(this, "Error sharing file.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Could not share file.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public void onMapClick(TrackItem trackItem) {
+        String extToUse = null;
+        if (trackItem.extensions.contains(".kml")) {
+            extToUse = ".kml";
+        } else if (trackItem.extensions.contains(".gpx")) {
+            extToUse = ".gpx";
+        }
+
+        if (extToUse == null) {
+            Toast.makeText(this, "No map-compatible file (.kml or .gpx) found for this track.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        File file = new File(new File(Environment.getExternalStorageDirectory(), GPS_FOLDER), trackItem.baseName + extToUse);
+        if (!file.exists()) {
+            Toast.makeText(this, "File not found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", file);
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+            if (extToUse.equals(".kml")) {
+                mapIntent.setDataAndType(uri, "application/vnd.google-earth.kml+xml");
+            } else {
+                mapIntent.setDataAndType(uri, "application/gpx+xml");
+            }
+            mapIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(mapIntent, "Open with"));
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening map", e);
+            Toast.makeText(this, "Could not find an app to open this file.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onDeleteClick(TrackItem trackItem) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Track")
+                .setMessage("Are you sure you want to delete all files for this track?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
+                    boolean deletedAny = false;
+                    for (String ext : trackItem.extensions) {
+                        File f = new File(dir, trackItem.baseName + ext);
+                        if (f.exists() && f.delete()) {
+                            deletedAny = true;
+                        }
+                    }
+                    if (deletedAny) {
+                        Toast.makeText(TracksListActivity.this, "Track deleted", Toast.LENGTH_SHORT).show();
+                        loadTracks();
+                    } else {
+                        Toast.makeText(TracksListActivity.this, "Failed to delete track", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     @Override

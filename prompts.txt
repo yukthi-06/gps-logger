@@ -38,7 +38,7 @@ more prompts
 	If the Timestamp is the main text, then subtitle need not display the timestamp again.
 *	Like the 'Tracks List' screen, have a left arrow to close screen on 'Settings', 'Help' and 'About' screen also.
 *	Tracks list has to be sorted by timestamp in descending order.....(newest on one top)
-*	
+*	On each track item, show small button icons for "Show on map", "Share", "Delete".  
 *	
 *	
 *	
