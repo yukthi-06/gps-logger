@@ -51,6 +51,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private String baseName;
     private LatLngBounds trackBounds;
     private String styleUrl;
+    private boolean styleLoaded = false;
 
     private LinearLayout llDownloadProgress;
     private TextView tvDownloadStatus;
@@ -89,8 +90,31 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(@NonNull MapLibreMap mapLibreMap) {
-        // Load the configured map style
+        // Set up did-fail listener to fall back to local asset style if offline and not cached
+        mapView.addOnDidFailLoadingMapListener(new MapView.OnDidFailLoadingMapListener() {
+            private boolean fallbackTriggered = false;
+
+            @Override
+            public void onDidFailLoadingMap(String errorMessage) {
+                Log.w(TAG, "Map style failed to load: " + errorMessage);
+                if (!styleLoaded && !fallbackTriggered) {
+                    fallbackTriggered = true;
+                    Log.i(TAG, "Triggering local style fallback (asset://osm_style.json)");
+                    runOnUiThread(() -> {
+                        mapLibreMap.setStyle(new Style.Builder().fromUri("asset://osm_style.json"), style -> {
+                            styleLoaded = true;
+                            if (baseName != null) {
+                                loadTrackData(mapLibreMap, style);
+                            }
+                        });
+                    });
+                }
+            }
+        });
+
+        // Attempt loading primary configured map style
         mapLibreMap.setStyle(new Style.Builder().fromUri(styleUrl), style -> {
+            styleLoaded = true;
             if (baseName != null) {
                 loadTrackData(mapLibreMap, style);
             } else {
@@ -224,12 +248,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         pbDownload.setIndeterminate(true);
         tvDownloadStatus.setText("Calculating download size...");
 
-        // Download tiles from zoom 10 to 17 for the bounding box
+        // Download tiles from zoom 10 to 19 for the bounding box
         OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
                 styleUrl,
                 trackBounds,
                 10,
-                17,
+                19,
                 getResources().getDisplayMetrics().density
         );
 
