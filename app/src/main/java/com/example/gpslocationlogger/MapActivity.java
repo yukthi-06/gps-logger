@@ -3,6 +3,8 @@ package com.example.gpslocationlogger;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,6 +24,11 @@ import org.maplibre.android.maps.OnMapReadyCallback;
 import org.maplibre.android.maps.Style;
 import org.maplibre.android.plugins.annotation.LineManager;
 import org.maplibre.android.plugins.annotation.LineOptions;
+import org.maplibre.android.offline.OfflineManager;
+import org.maplibre.android.offline.OfflineRegion;
+import org.maplibre.android.offline.OfflineRegionError;
+import org.maplibre.android.offline.OfflineRegionStatus;
+import org.maplibre.android.offline.OfflineTilePyramidRegionDefinition;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +43,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
     private MapView mapView;
     private String baseName;
+    private LatLngBounds trackBounds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,24 +70,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(@NonNull MapLibreMap mapLibreMap) {
-        // Use a simple raster style with OpenStreetMap tiles to avoid needing an API key
-        String styleJson = "{"
-                + "\"version\": 8,"
-                + "\"sources\": {"
-                + "  \"osm\": {"
-                + "    \"type\": \"raster\","
-                + "    \"tiles\": [\"https://a.tile.openstreetmap.org/{z}/{x}/{y}.png\"],"
-                + "    \"tileSize\": 256"
-                + "  }"
-                + "},"
-                + "\"layers\": [{"
-                + "  \"id\": \"osm\","
-                + "  \"type\": \"raster\","
-                + "  \"source\": \"osm\""
-                + "}]"
-                + "}";
-
-        mapLibreMap.setStyle(new Style.Builder().fromJson(styleJson), style -> {
+        // Load the OpenStreetMap raster style from assets
+        mapLibreMap.setStyle(new Style.Builder().fromUri("asset://osm_style.json"), style -> {
             if (baseName != null) {
                 loadTrackData(mapLibreMap, style);
             } else {
@@ -161,6 +153,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 return;
             }
 
+            // Save bounds for offline download feature
+            trackBounds = boundsBuilder.build();
+
             // Draw polyline using the annotation plugin
             LineManager lineManager = new LineManager(mapView, mapLibreMap, style);
             LineOptions lineOptions = new LineOptions()
@@ -171,7 +166,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             lineManager.create(lineOptions);
 
             // Zoom to fit the bounding box with 100px padding
-            mapLibreMap.easeCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 100));
+            mapLibreMap.easeCamera(CameraUpdateFactory.newLatLngBounds(trackBounds, 100));
 
         } catch (Exception e) {
             Log.e(TAG, "Failed to load map data", e);
@@ -183,6 +178,83 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public boolean onSupportNavigateUp() {
         finish();
         return true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_map, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_download_offline) {
+            downloadOfflineMap();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void downloadOfflineMap() {
+        if (trackBounds == null) {
+            Toast.makeText(this, "No route data to download.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(this, "Starting offline map download...", Toast.LENGTH_SHORT).show();
+
+        // Download tiles from zoom 10 to 17 for the bounding box
+        OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
+                "asset://osm_style.json",
+                trackBounds,
+                10,
+                17,
+                getResources().getDisplayMetrics().density
+        );
+
+        byte[] metadata;
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("REGION_NAME", baseName);
+            metadata = jsonObject.toString().getBytes("UTF-8");
+        } catch (Exception e) {
+            metadata = new byte[0];
+        }
+
+        OfflineManager.getInstance(this).createOfflineRegion(
+                definition,
+                metadata,
+                new OfflineManager.CreateOfflineRegionCallback() {
+                    @Override
+                    public void onCreate(OfflineRegion offlineRegion) {
+                        offlineRegion.setDownloadState(OfflineRegion.STATE_ACTIVE);
+                        offlineRegion.setObserver(new OfflineRegion.OfflineRegionObserver() {
+                            @Override
+                            public void onStatusChanged(OfflineRegionStatus status) {
+                                if (status.isComplete()) {
+                                    Toast.makeText(MapActivity.this, "Offline map downloaded successfully!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onError(OfflineRegionError error) {
+                                Log.e(TAG, "Offline region error: " + error.getReason());
+                                Toast.makeText(MapActivity.this, "Error downloading map.", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void mapboxTileCountLimitExceeded(long limit) {
+                                Log.e(TAG, "Tile count exceeded: " + limit);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e(TAG, "Failed to create offline region: " + error);
+                    }
+                }
+        );
     }
 
     // --- MapView Lifecycle Methods ---

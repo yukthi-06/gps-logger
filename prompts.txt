@@ -47,7 +47,7 @@ more prompts
     implementation "org.maplibre.gl:android-plugin-annotation-v9:3.0.1"
 
 *	show on map from GPX, KML or JSON file.  Check for files in that order
-*	
+*	download the relevant map tiles for offline use
 *	
 *	
 *	
