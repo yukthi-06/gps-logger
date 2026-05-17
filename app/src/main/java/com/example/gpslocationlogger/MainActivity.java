@@ -64,9 +64,9 @@ import java.util.List;
  *
  * Tracks GPS location using FusedLocationProviderClient, stores updates
  * in-memory as a JSON array, and saves to:
- *   Vypeensoft/GPS_Location_Logger/  (Android 10+, via MediaStore.Downloads)
+ *   Vypeensoft/GPS_Location_Logger/  (Android 10+, via MANAGE_EXTERNAL_STORAGE)
  *
- * No special permission needed. Visible in all file managers and USB/MTP.
+ * Requires WRITE_EXTERNAL_STORAGE (API < 30) and MANAGE_EXTERNAL_STORAGE (API >= 30).
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -374,12 +374,26 @@ public class MainActivity extends AppCompatActivity {
 
     /** Checks whether required permissions are granted, requests them if not. */
     private void checkAndRequestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                intent.setData(uri);
+                startActivity(intent);
+                return;
+            }
+        }
+
         List<String> permissionsNeeded = new ArrayList<>();
         permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
 
         // Android 13+ requires explicit notification permission for Foreground Services
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         }
 
         List<String> listPermissionsNeeded = new ArrayList<>();
@@ -544,7 +558,7 @@ public class MainActivity extends AppCompatActivity {
                 for (JSONObject record : records) {
                     jsonArray.put(record);
                 }
-                saveViaMediaStore(jsonArray.toString(2), baseName + ".json", "application/json");
+                saveToFile(jsonArray.toString(2), baseName + ".json");
             } catch (JSONException e) {
                 Log.e(TAG, "Error formatting JSON", e);
             }
@@ -553,25 +567,25 @@ public class MainActivity extends AppCompatActivity {
         // 3. Generate and save GPX
         if (saveGpx) {
             String gpxContent = generateGpx(records);
-            saveViaMediaStore(gpxContent, baseName + ".gpx", "application/gpx+xml");
+            saveToFile(gpxContent, baseName + ".gpx");
         }
 
         // 4. Generate and save KML
         if (saveKml) {
             String kmlContent = generateKml(records);
-            lastSavedUri = saveViaMediaStore(kmlContent, baseName + ".kml", "application/vnd.google-earth.kml+xml");
+            lastSavedUri = saveToFile(kmlContent, baseName + ".kml");
             lastSavedName = baseName + ".kml";
         } else if (saveGpx) {
             // If KML not saved, use GPX as last saved for sharing
             String gpxContent = generateGpx(records);
-            lastSavedUri = saveViaMediaStore(gpxContent, baseName + ".gpx", "application/gpx+xml");
+            lastSavedUri = saveToFile(gpxContent, baseName + ".gpx");
             lastSavedName = baseName + ".gpx";
         } else if (saveJson) {
             // Fallback to JSON
             try {
                 JSONArray jsonArray = new JSONArray();
                 for (JSONObject record : records) jsonArray.put(record);
-                lastSavedUri = saveViaMediaStore(jsonArray.toString(2), baseName + ".json", "application/json");
+                lastSavedUri = saveToFile(jsonArray.toString(2), baseName + ".json");
                 lastSavedName = baseName + ".json";
             } catch (JSONException ignored) {}
         }
@@ -596,30 +610,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Writes string content to a file in Vypeensoft/GPS_Location_Logger/ via MediaStore.
-     * @return the Uri of the saved file, or null if failed.
+     * Writes string content to a file in Vypeensoft/GPS_Location_Logger/ using standard file I/O.
+     * @return the Uri of the saved file via FileProvider, or null if failed.
      */
-    private Uri saveViaMediaStore(String content, String fileName, String mimeType) {
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
-        values.put(MediaStore.Downloads.MIME_TYPE,    mimeType);
-        values.put(MediaStore.Downloads.RELATIVE_PATH, GPS_FOLDER);
-
-        Uri collectionUri = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
-        Uri fileUri = getContentResolver().insert(collectionUri, values);
-
-        if (fileUri == null) {
-            Log.e(TAG, "MediaStore insert failed for " + fileName);
-            return null;
+    private Uri saveToFile(String content, String fileName) {
+        File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
+        if (!dir.exists()) {
+            if (!dir.mkdirs()) {
+                Log.e(TAG, "Failed to create directory: " + dir.getAbsolutePath());
+            }
         }
-
-        try (OutputStream os = getContentResolver().openOutputStream(fileUri);
-             OutputStreamWriter writer = new OutputStreamWriter(os)) {
+        
+        File file = new File(dir, fileName);
+        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
+             java.io.OutputStreamWriter writer = new java.io.OutputStreamWriter(fos)) {
 
             writer.write(content);
             writer.flush();
-            Log.i(TAG, "Saved → " + fileName);
-            return fileUri;
+            Log.i(TAG, "Saved → " + file.getAbsolutePath());
+            return androidx.core.content.FileProvider.getUriForFile(this, getPackageName() + ".provider", file);
 
         } catch (IOException e) {
             Log.e(TAG, "Error writing " + fileName, e);
