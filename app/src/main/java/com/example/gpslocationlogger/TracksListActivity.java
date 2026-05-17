@@ -174,8 +174,8 @@ public class TracksListActivity extends AppCompatActivity {
         trackList.clear();
         trackList.addAll(trackMap.values());
 
-        // Sort descending by last modified
-        Collections.sort(trackList, (t1, t2) -> Long.compare(t2.lastModified, t1.lastModified));
+        // Sort descending by timestamp (lexicographically via baseName)
+        Collections.sort(trackList, (t1, t2) -> t2.baseName.compareTo(t1.baseName));
 
         adapter.notifyDataSetChanged();
 
