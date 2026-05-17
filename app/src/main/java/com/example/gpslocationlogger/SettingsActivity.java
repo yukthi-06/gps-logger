@@ -4,6 +4,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -43,6 +45,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView   tvIntervalPreview;
     private CheckBox   cbJson, cbGpx, cbKml;
     private EditText   etMapStyleUrl;
+    private Button     btnClearCache;
     private SharedPreferences prefs;
 
     // Maps each RadioButton ID to its interval in milliseconds
@@ -128,6 +131,10 @@ public class SettingsActivity extends AppCompatActivity {
                 prefs.edit().putString(KEY_MAP_STYLE_URL, s.toString().trim()).apply();
             }
         });
+
+        // ── 4. Offline Map Cache Settings ──
+        btnClearCache = findViewById(R.id.btnClearCache);
+        btnClearCache.setOnClickListener(v -> clearOfflineMapCache());
     }
 
     /**
@@ -186,5 +193,55 @@ public class SettingsActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         finish();
         return true;
+    }
+
+    /** Lists and deletes all offline map downloaded regions programmatically. */
+    private void clearOfflineMapCache() {
+        // Initialize MapLibre in this context first
+        org.maplibre.android.MapLibre.getInstance(this);
+
+        org.maplibre.android.offline.OfflineManager.getInstance(this).listOfflineRegions(new org.maplibre.android.offline.OfflineManager.ListOfflineRegionsCallback() {
+            @Override
+            public void onList(org.maplibre.android.offline.OfflineRegion[] offlineRegions) {
+                if (offlineRegions == null || offlineRegions.length == 0) {
+                    Toast.makeText(SettingsActivity.this, "No offline map data found.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                new androidx.appcompat.app.AlertDialog.Builder(SettingsActivity.this)
+                        .setTitle("Clear Offline Maps?")
+                        .setMessage("This will delete all downloaded offline map tiles. You will need to download them again for offline use.")
+                        .setPositiveButton("Clear", (dialog, which) -> {
+                            final int total = offlineRegions.length;
+                            final java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);
+
+                            for (org.maplibre.android.offline.OfflineRegion region : offlineRegions) {
+                                region.delete(new org.maplibre.android.offline.OfflineRegion.OfflineRegionDeleteCallback() {
+                                    @Override
+                                    public void onDelete() {
+                                        int progress = count.incrementAndGet();
+                                        if (progress == total) {
+                                            Toast.makeText(SettingsActivity.this, "Successfully cleared all offline maps!", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(String error) {
+                                        Log.e("SettingsActivity", "Error deleting region: " + error);
+                                        Toast.makeText(SettingsActivity.this, "Error deleting region: " + error, Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("SettingsActivity", "Failed to list offline regions: " + error);
+                Toast.makeText(SettingsActivity.this, "Failed to load offline regions: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
