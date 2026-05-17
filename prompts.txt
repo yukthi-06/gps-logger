@@ -51,8 +51,8 @@ more prompts
 *	show download status until download completes
 *	the screen is stuck at 'calculating download size...'
 *	No change... the screen is still stuck at 'calculating download size...'
-*	
-*	
+*	stuck at 'Downloading ... 0/1 tiles(0.0%)'
+*	make the Map Style URL as configurable from the settings page
 *	
 *	
 *	

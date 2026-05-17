@@ -38,4 +38,7 @@
     <string name="help_instructions">Welcome to GPS Location Logger!\n\nTo start tracking, simply press the "Start Tracking" button. The app will record your coordinates in the background. When you\'re finished, press "End Tracking" to save your data.\n\nYou can configure the export formats (JSON, GPX, KML) in the Settings menu.\n\nFor more support, please visit our website.</string>
     <string name="about_title">About</string>
     <string name="about_description">A simple and powerful tool for recording GPS tracks.\n\nDeveloped by Shibu T Narayanan.\n© 2026 All Rights Reserved.</string>
+    <string name="section_map">MAP SETTINGS</string>
+    <string name="label_map_style_url">Map Style URL (JSON)</string>
+    <string name="desc_map_style_url">Mapbox/MapLibre Style JSON URL for rendering and offline map downloading</string>
 </resources>

@@ -2,7 +2,10 @@ package com.example.gpslocationlogger;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,12 +32,17 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String KEY_SAVE_GPX  = "save_gpx";
     public static final String KEY_SAVE_KML  = "save_kml";
 
+    /** Key for Map Style URL. */
+    public static final String KEY_MAP_STYLE_URL = "map_style_url";
+    public static final String DEFAULT_MAP_STYLE_URL = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
+
     /** Default interval: 5 seconds. */
     public static final long DEFAULT_INTERVAL_MS = 5_000L;
 
     private RadioGroup rgFrequency;
     private TextView   tvIntervalPreview;
     private CheckBox   cbJson, cbGpx, cbKml;
+    private EditText   etMapStyleUrl;
     private SharedPreferences prefs;
 
     // Maps each RadioButton ID to its interval in milliseconds
@@ -80,6 +88,7 @@ public class SettingsActivity extends AppCompatActivity {
         cbJson           = findViewById(R.id.cbJson);
         cbGpx            = findViewById(R.id.cbGpx);
         cbKml            = findViewById(R.id.cbKml);
+        etMapStyleUrl    = findViewById(R.id.etMapStyleUrl);
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
@@ -102,6 +111,23 @@ public class SettingsActivity extends AppCompatActivity {
         cbJson.setOnCheckedChangeListener((v, checked) -> handleFormatChange(KEY_SAVE_JSON, checked, cbJson));
         cbGpx.setOnCheckedChangeListener((v, checked) -> handleFormatChange(KEY_SAVE_GPX, checked, cbGpx));
         cbKml.setOnCheckedChangeListener((v, checked) -> handleFormatChange(KEY_SAVE_KML, checked, cbKml));
+
+        // ── 3. Map Style URL Settings ──
+        String savedMapStyle = prefs.getString(KEY_MAP_STYLE_URL, DEFAULT_MAP_STYLE_URL);
+        etMapStyleUrl.setText(savedMapStyle);
+
+        etMapStyleUrl.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                prefs.edit().putString(KEY_MAP_STYLE_URL, s.toString().trim()).apply();
+            }
+        });
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.example.gpslocationlogger;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -34,11 +35,8 @@ import org.maplibre.android.offline.OfflineRegionError;
 import org.maplibre.android.offline.OfflineRegionStatus;
 import org.maplibre.android.offline.OfflineTilePyramidRegionDefinition;
 
-import android.net.Uri;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -48,43 +46,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private static final String TAG = "MapActivity";
     private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
+    
     private MapView mapView;
     private String baseName;
     private LatLngBounds trackBounds;
+    private String styleUrl;
 
     private LinearLayout llDownloadProgress;
     private TextView tvDownloadStatus;
     private ProgressBar pbDownload;
-
-    private String getStyleFileUri() {
-        File styleFile = new File(getFilesDir(), "osm_style.json");
-        if (!styleFile.exists()) {
-            try {
-                InputStream is = getAssets().open("osm_style.json");
-                FileOutputStream fos = new FileOutputStream(styleFile);
-                byte[] buffer = new byte[1024];
-                int read;
-                while ((read = is.read(buffer)) != -1) {
-                    fos.write(buffer, 0, read);
-                }
-                fos.flush();
-                fos.close();
-                is.close();
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to copy style file from assets", e);
-                try {
-                    FileOutputStream fos = new FileOutputStream(styleFile);
-                    String styleJson = "{\"version\":8,\"sources\":{\"osm\":{\"type\":\"raster\",\"tiles\":[\"https://a.tile.openstreetmap.org/{z}/{x}/{y}.png\"],\"tileSize\":256}},\"layers\":[{\"id\":\"osm\",\"type\":\"raster\",\"source\":\"osm\"}]}";
-                    fos.write(styleJson.getBytes("UTF-8"));
-                    fos.flush();
-                    fos.close();
-                } catch (Exception ex) {
-                    Log.e(TAG, "Failed to write fallback style", ex);
-                }
-            }
-        }
-        return Uri.fromFile(styleFile).toString();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +74,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         baseName = getIntent().getStringExtra("TRACK_BASENAME");
 
+        // Load the configured style URL from SharedPreferences
+        SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
+        styleUrl = prefs.getString(SettingsActivity.KEY_MAP_STYLE_URL, SettingsActivity.DEFAULT_MAP_STYLE_URL);
+
         mapView = findViewById(R.id.mapView);
         llDownloadProgress = findViewById(R.id.llDownloadProgress);
         tvDownloadStatus = findViewById(R.id.tvDownloadStatus);
@@ -115,8 +89,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(@NonNull MapLibreMap mapLibreMap) {
-        // Load the OpenStreetMap raster style from local files (JNI safe)
-        mapLibreMap.setStyle(new Style.Builder().fromUri(getStyleFileUri()), style -> {
+        // Load the configured map style
+        mapLibreMap.setStyle(new Style.Builder().fromUri(styleUrl), style -> {
             if (baseName != null) {
                 loadTrackData(mapLibreMap, style);
             } else {
@@ -252,7 +226,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // Download tiles from zoom 10 to 17 for the bounding box
         OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
-                getStyleFileUri(),
+                styleUrl,
                 trackBounds,
                 10,
                 17,
