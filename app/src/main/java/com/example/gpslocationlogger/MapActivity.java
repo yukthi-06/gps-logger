@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -88,36 +90,74 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private void loadTrackData(MapLibreMap mapLibreMap, Style style) {
         File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
+        File gpxFile = new File(dir, baseName + ".gpx");
+        File kmlFile = new File(dir, baseName + ".kml");
         File jsonFile = new File(dir, baseName + ".json");
 
-        if (!jsonFile.exists()) {
-            Toast.makeText(this, "Cannot display map: No .json data found for this track.", Toast.LENGTH_LONG).show();
+        File fileToParse = null;
+        String format = null;
+
+        if (gpxFile.exists()) {
+            fileToParse = gpxFile;
+            format = "GPX";
+        } else if (kmlFile.exists()) {
+            fileToParse = kmlFile;
+            format = "KML";
+        } else if (jsonFile.exists()) {
+            fileToParse = jsonFile;
+            format = "JSON";
+        }
+
+        if (fileToParse == null) {
+            Toast.makeText(this, "Cannot display map: No map data found for this track.", Toast.LENGTH_LONG).show();
             return;
         }
 
         try {
-            FileInputStream fis = new FileInputStream(jsonFile);
-            byte[] data = new byte[(int) jsonFile.length()];
+            FileInputStream fis = new FileInputStream(fileToParse);
+            byte[] data = new byte[(int) fileToParse.length()];
             fis.read(data);
             fis.close();
             
-            String jsonStr = new String(data, "UTF-8");
-            JSONArray jsonArray = new JSONArray(jsonStr);
-
+            String fileStr = new String(data, "UTF-8");
             List<LatLng> points = new ArrayList<>();
             LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
 
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject obj = jsonArray.getJSONObject(i);
-                double lat = obj.getDouble("latitude");
-                double lon = obj.getDouble("longitude");
-                LatLng latLng = new LatLng(lat, lon);
-                points.add(latLng);
-                boundsBuilder.include(latLng);
+            if ("GPX".equals(format)) {
+                Pattern p = Pattern.compile("<trkpt lat=\"([^\"]+)\" lon=\"([^\"]+)\">");
+                Matcher m = p.matcher(fileStr);
+                while (m.find()) {
+                    double lat = Double.parseDouble(m.group(1));
+                    double lon = Double.parseDouble(m.group(2));
+                    LatLng latLng = new LatLng(lat, lon);
+                    points.add(latLng);
+                    boundsBuilder.include(latLng);
+                }
+            } else if ("KML".equals(format)) {
+                // KML coordinates format: lon,lat,alt
+                Pattern p = Pattern.compile("([\\d\\.-]+),([\\d\\.-]+),0");
+                Matcher m = p.matcher(fileStr);
+                while (m.find()) {
+                    double lon = Double.parseDouble(m.group(1));
+                    double lat = Double.parseDouble(m.group(2));
+                    LatLng latLng = new LatLng(lat, lon);
+                    points.add(latLng);
+                    boundsBuilder.include(latLng);
+                }
+            } else if ("JSON".equals(format)) {
+                JSONArray jsonArray = new JSONArray(fileStr);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject obj = jsonArray.getJSONObject(i);
+                    double lat = obj.getDouble("latitude");
+                    double lon = obj.getDouble("longitude");
+                    LatLng latLng = new LatLng(lat, lon);
+                    points.add(latLng);
+                    boundsBuilder.include(latLng);
+                }
             }
 
             if (points.isEmpty()) {
-                Toast.makeText(this, "No location points in this track.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "No location points found in " + format + " file.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
