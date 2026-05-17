@@ -13,9 +13,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.provider.Settings;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,6 +36,7 @@ public class TracksListActivity extends AppCompatActivity {
 
     private static final String TAG = "TracksListActivity";
     private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
+    private static final int STORAGE_PERMISSION_CODE = 1002;
 
     private RecyclerView recyclerView;
     private TextView tvEmptyState;
@@ -55,11 +62,66 @@ public class TracksListActivity extends AppCompatActivity {
         adapter = new TrackAdapter(this, trackList, this::onTrackClicked);
         recyclerView.setAdapter(adapter);
 
-        loadTracks();
+        checkPermissionsAndLoadTracks();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Check permissions again in case user granted them from settings
+        if (hasStoragePermission()) {
+            loadTracks();
+        }
+    }
+
+    private boolean hasStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        } else {
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED ||
+                   ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    private void checkPermissionsAndLoadTracks() {
+        if (hasStoragePermission()) {
+            loadTracks();
+        } else {
+            requestStoragePermission();
+        }
+    }
+
+    private void requestStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.addCategory("android.intent.category.DEFAULT");
+                intent.setData(Uri.parse(String.format("package:%s", getPackageName())));
+                startActivity(intent);
+            } catch (Exception e) {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivity(intent);
+            }
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                loadTracks();
+            } else {
+                showEmptyState("Storage permission denied. Cannot read tracks.");
+            }
+        }
     }
 
     private void loadTracks() {
-        File dir = new File("/sdcard/Vypeensoft/GPS_Location_Logger/");
+        File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
         
         if (!dir.exists()) {
             showEmptyState("Folder does not exist:\n" + dir.getAbsolutePath());
