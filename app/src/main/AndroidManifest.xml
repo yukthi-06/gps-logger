@@ -62,6 +62,13 @@
             android:parentActivityName=".MainActivity" />
 
         <activity
+            android:name=".TracksListActivity"
+            android:exported="false"
+            android:label="@string/menu_tracks_list"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
             android:name=".HelpActivity"
             android:exported="false"
             android:label="Help"

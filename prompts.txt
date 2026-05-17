@@ -26,6 +26,20 @@ more prompts
 *	move the project settings and data folder base from /sdcard/Downloads/GPSLocationLogger to /sdcard/Vypeensoft/GPS_Location_Logger
 *	On clicking "End tracking", app crashes.  
 *	Also final loctaion to save GPX and other files is '/sdcard/Vypeensoft/GPS_Location_Logger'
+*	on the left side menu, create a new menu item by name 'Tracks List'.  
+	Clicking on this should launch a new screen which shows list of tracks from the saved folder.  
+	Since for each track there are 3 files(gpx, kml, json), only one item should be shown in the tracks list.
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
 *	
 
 --------------------------------------------------------------------------------------------

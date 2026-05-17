@@ -181,7 +181,9 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_settings) {
+            if (id == R.id.nav_tracks_list) {
+                startActivity(new Intent(this, TracksListActivity.class));
+            } else if (id == R.id.nav_settings) {
                 startActivity(new Intent(this, SettingsActivity.class));
             } else if (id == R.id.nav_help) {
                 startActivity(new Intent(this, HelpActivity.class));
