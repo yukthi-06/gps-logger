@@ -295,38 +295,9 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
 
     @Override
     public void onMapClick(TrackItem trackItem) {
-        String extToUse = null;
-        if (trackItem.extensions.contains(".kml")) {
-            extToUse = ".kml";
-        } else if (trackItem.extensions.contains(".gpx")) {
-            extToUse = ".gpx";
-        }
-
-        if (extToUse == null) {
-            Toast.makeText(this, "No map-compatible file (.kml or .gpx) found for this track.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        File file = new File(new File(Environment.getExternalStorageDirectory(), GPS_FOLDER), trackItem.baseName + extToUse);
-        if (!file.exists()) {
-            Toast.makeText(this, "File not found.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", file);
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW);
-            if (extToUse.equals(".kml")) {
-                mapIntent.setDataAndType(uri, "application/vnd.google-earth.kml+xml");
-            } else {
-                mapIntent.setDataAndType(uri, "application/gpx+xml");
-            }
-            mapIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(Intent.createChooser(mapIntent, "Open with"));
-        } catch (Exception e) {
-            Log.e(TAG, "Error opening map", e);
-            Toast.makeText(this, "Could not find an app to open this file.", Toast.LENGTH_SHORT).show();
-        }
+        Intent intent = new Intent(this, MapActivity.class);
+        intent.putExtra("TRACK_BASENAME", trackItem.baseName);
+        startActivity(intent);
     }
 
     @Override

@@ -39,6 +39,22 @@ more prompts
 *	Like the 'Tracks List' screen, have a left arrow to close screen on 'Settings', 'Help' and 'About' screen also.
 *	Tracks list has to be sorted by timestamp in descending order.....(newest on one top)
 *	On each track item, show small button icons for "Show on map", "Share", "Delete".  
+*	on clikcing on 'map' button, it should open a new screen and load a map(from libre map library) and show the route on that map.  The map must be zoomable.
+*	Use the below library instead of osmdroid
+
+    // MapLibre SDK (Open Source fork of Mapbox)
+    implementation "org.maplibre.gl:android-sdk:11.5.0"
+    implementation "org.maplibre.gl:android-plugin-annotation-v9:3.0.1"
+
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
 *	
 *	
 *	

@@ -63,6 +63,10 @@ dependencies {
     // Provides FusedLocationProviderClient, LocationRequest, LocationCallback etc.
     implementation 'com.google.android.gms:play-services-location:21.3.0'
 
+    // MapLibre SDK (Open Source fork of Mapbox)
+    implementation "org.maplibre.gl:android-sdk:11.5.0"
+    implementation "org.maplibre.gl:android-plugin-annotation-v9:3.0.1"
+
     // Testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
