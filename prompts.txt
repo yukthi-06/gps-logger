@@ -23,7 +23,7 @@ more prompts
 *	the filename should be suffixed with *_yyyyMMdd.hhmmss
 *	In the tracking info field, place a small "Tick" mark, so that once I type text in the field, and click on this "Tick" mark, the field is frozen and no longer editable
 *	small correction.  Create a folder in the project folder 'Prompts' and create the MD files inside it.  Also, prefix with timestamp, instead of suffix
-*	
+*	move the project settings and data folder base from /sdcard/Downloads/GPSLocationLogger to /sdcard/Vypeensoft/GPS_Location_Logger
 *	
 *	
 

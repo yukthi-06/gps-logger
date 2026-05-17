@@ -13,7 +13,7 @@
     <string name="label_pause_tracking">Pause Logging</string>
     <string name="label_resume_tracking">Resume Logging</string>
     <string name="label_end_tracking">End Tracking</string>
-    <string name="label_save_path">📁  Files saved to:  Download/GPSLocationLogger/</string>
+    <string name="label_save_path">📁  Files saved to:  Vypeensoft/GPS_Location_Logger/</string>
 
     <!-- SettingsActivity -->
     <string name="section_logging">LOGGING</string>

@@ -64,7 +64,7 @@ import java.util.List;
  *
  * Tracks GPS location using FusedLocationProviderClient, stores updates
  * in-memory as a JSON array, and saves to:
- *   Downloads/GPSLocationLogger/  (Android 10+, via MediaStore.Downloads)
+ *   Vypeensoft/GPS_Location_Logger/  (Android 10+, via MediaStore.Downloads)
  *
  * No special permission needed. Visible in all file managers and USB/MTP.
  */
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Subfolder name inside Downloads.
-     * Final path: /sdcard/Download/GPSLocationLogger/
+     * Final path: /sdcard/Vypeensoft/GPS_Location_Logger/
      * Visible in all file managers and via USB/MTP — no root required.
      *
      * NOTE: Android scoped storage (API 29+) prevents creating arbitrary
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
      * reliable option is a subfolder inside a well-known public directory
      * such as Downloads, which MediaStore.Downloads handles natively.
      */
-    private static final String GPS_FOLDER = "GPSLocationLogger";
+    private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
 
     // ── UI ──────────────────────────────────────────────────────────────────
     private Button btnStartTracking;
@@ -596,15 +596,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Writes string content to a file in Downloads/GPSLocationLogger/ via MediaStore.
+     * Writes string content to a file in Vypeensoft/GPS_Location_Logger/ via MediaStore.
      * @return the Uri of the saved file, or null if failed.
      */
     private Uri saveViaMediaStore(String content, String fileName, String mimeType) {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
         values.put(MediaStore.Downloads.MIME_TYPE,    mimeType);
-        values.put(MediaStore.Downloads.RELATIVE_PATH,
-                Environment.DIRECTORY_DOWNLOADS + File.separator + GPS_FOLDER);
+        values.put(MediaStore.Downloads.RELATIVE_PATH, GPS_FOLDER);
 
         Uri collectionUri = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
         Uri fileUri = getContentResolver().insert(collectionUri, values);
