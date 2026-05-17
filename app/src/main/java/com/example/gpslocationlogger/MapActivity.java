@@ -5,6 +5,10 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -45,6 +49,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private String baseName;
     private LatLngBounds trackBounds;
 
+    private LinearLayout llDownloadProgress;
+    private TextView tvDownloadStatus;
+    private ProgressBar pbDownload;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +72,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         baseName = getIntent().getStringExtra("TRACK_BASENAME");
 
         mapView = findViewById(R.id.mapView);
+        llDownloadProgress = findViewById(R.id.llDownloadProgress);
+        tvDownloadStatus = findViewById(R.id.tvDownloadStatus);
+        pbDownload = findViewById(R.id.pbDownload);
+        
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
     }
@@ -201,7 +213,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             return;
         }
 
-        Toast.makeText(this, "Starting offline map download...", Toast.LENGTH_SHORT).show();
+        llDownloadProgress.setVisibility(View.VISIBLE);
+        pbDownload.setIndeterminate(true);
+        tvDownloadStatus.setText("Calculating download size...");
 
         // Download tiles from zoom 10 to 17 for the bounding box
         OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
@@ -232,26 +246,44 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                             @Override
                             public void onStatusChanged(OfflineRegionStatus status) {
                                 if (status.isComplete()) {
+                                    llDownloadProgress.setVisibility(View.GONE);
                                     Toast.makeText(MapActivity.this, "Offline map downloaded successfully!", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                if (status.isRequiredResourceCountPrecise()) {
+                                    pbDownload.setIndeterminate(false);
+                                    double percentage = (100.0 * status.getCompletedResourceCount()) / status.getRequiredResourceCount();
+                                    pbDownload.setProgress((int) Math.round(percentage));
+                                    tvDownloadStatus.setText(String.format("Downloading... %d / %d tiles (%.1f%%)",
+                                            status.getCompletedResourceCount(), status.getRequiredResourceCount(), percentage));
+                                } else {
+                                    pbDownload.setIndeterminate(true);
+                                    tvDownloadStatus.setText("Calculating download size...");
                                 }
                             }
 
                             @Override
                             public void onError(OfflineRegionError error) {
+                                llDownloadProgress.setVisibility(View.GONE);
                                 Log.e(TAG, "Offline region error: " + error.getReason());
                                 Toast.makeText(MapActivity.this, "Error downloading map.", Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
                             public void mapboxTileCountLimitExceeded(long limit) {
+                                llDownloadProgress.setVisibility(View.GONE);
                                 Log.e(TAG, "Tile count exceeded: " + limit);
+                                Toast.makeText(MapActivity.this, "Tile limit exceeded.", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
 
                     @Override
                     public void onError(String error) {
+                        llDownloadProgress.setVisibility(View.GONE);
                         Log.e(TAG, "Failed to create offline region: " + error);
+                        Toast.makeText(MapActivity.this, "Failed to start download.", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
