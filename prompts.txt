@@ -36,7 +36,7 @@ more prompts
 	Along with list item name, show timestamp as a small font below it
 *	Remove the millisecond from the display...
 	If the Timestamp is the main text, then subtitle need not display the timestamp again.
-*	
+*	Like the 'Tracks List' screen, have a left arrow to close screen on 'Settings', 'Help' and 'About' screen also.
 *	
 *	
 *	

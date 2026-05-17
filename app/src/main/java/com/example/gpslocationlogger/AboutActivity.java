@@ -3,6 +3,7 @@ package com.example.gpslocationlogger;
 import android.os.Bundle;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 public class AboutActivity extends AppCompatActivity {
     @Override
@@ -19,6 +20,8 @@ public class AboutActivity extends AppCompatActivity {
                 getString(R.string.about_description);
         tvAboutContent.setText(buildInfo);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(R.string.menu_about);
