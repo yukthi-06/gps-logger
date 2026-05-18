@@ -10,7 +10,10 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.RadioGroup;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,24 +47,12 @@ public class SettingsActivity extends AppCompatActivity {
     /** Default interval: 5 seconds. */
     public static final long DEFAULT_INTERVAL_MS = 5_000L;
 
-    private RadioGroup rgFrequency;
+    private Spinner    spFrequency;
     private TextView   tvIntervalPreview;
     private CheckBox   cbJson, cbGpx, cbKml;
     private EditText   etMapStyleUrl;
     private Button     btnClearCache;
     private SharedPreferences prefs;
-
-    // Maps each RadioButton ID to its interval in milliseconds
-    private static final int[] RADIO_IDS = {
-            R.id.rb1s,
-            R.id.rb2s,
-            R.id.rb3s,
-            R.id.rb5s,
-            R.id.rb10s,
-            R.id.rb30s,
-            R.id.rb1m,
-            R.id.rb5m
-    };
 
     private static final long[] INTERVALS_MS = {
             1_000L,
@@ -75,14 +66,14 @@ public class SettingsActivity extends AppCompatActivity {
     };
 
     private static final String[] INTERVAL_LABELS = {
-            "Every 1 second",
+            "Every 1 second (Highest frequency)",
             "Every 2 seconds",
             "Every 3 seconds",
-            "Every 5 seconds",
+            "Every 5 seconds (High accuracy)",
             "Every 10 seconds",
             "Every 30 seconds",
             "Every 1 minute",
-            "Every 5 minutes"
+            "Every 5 minutes (Battery saver)"
     };
 
     @Override
@@ -98,7 +89,7 @@ public class SettingsActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Options");
         }
 
-        rgFrequency      = findViewById(R.id.rgFrequency);
+        spFrequency      = findViewById(R.id.spFrequency);
         tvIntervalPreview = findViewById(R.id.tvIntervalPreview);
         cbJson           = findViewById(R.id.cbJson);
         cbGpx            = findViewById(R.id.cbGpx);
@@ -107,15 +98,32 @@ public class SettingsActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        // ── 1. Logging Frequency ──
+        // ── 1. Logging Frequency (Dropdown Spinner) ──
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, INTERVAL_LABELS);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spFrequency.setAdapter(adapter);
+
         long savedInterval = prefs.getLong(KEY_INTERVAL_MS, DEFAULT_INTERVAL_MS);
-        selectRadioForInterval(savedInterval);
+        int selectionIndex = 3; // default: 5s (index 3)
+        for (int i = 0; i < INTERVALS_MS.length; i++) {
+            if (INTERVALS_MS[i] == savedInterval) {
+                selectionIndex = i;
+                break;
+            }
+        }
+        spFrequency.setSelection(selectionIndex);
         updatePreview(savedInterval);
 
-        rgFrequency.setOnCheckedChangeListener((group, checkedId) -> {
-            long interval = intervalForRadioId(checkedId);
-            prefs.edit().putLong(KEY_INTERVAL_MS, interval).apply();
-            updatePreview(interval);
+        spFrequency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                long interval = INTERVALS_MS[position];
+                prefs.edit().putLong(KEY_INTERVAL_MS, interval).apply();
+                updatePreview(interval);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         // ── 2. Format Selection ──
@@ -167,28 +175,6 @@ public class SettingsActivity extends AppCompatActivity {
         prefs.edit().putBoolean(key, isChecked).apply();
     }
 
-    /** Selects the radio button that matches the stored interval. */
-    private void selectRadioForInterval(long intervalMs) {
-        for (int i = 0; i < INTERVALS_MS.length; i++) {
-            if (INTERVALS_MS[i] == intervalMs) {
-                rgFrequency.check(RADIO_IDS[i]);
-                return;
-            }
-        }
-        // Fallback to default (5 s)
-        rgFrequency.check(R.id.rb5s);
-    }
-
-    /** Returns the interval in ms corresponding to a radio button ID. */
-    private long intervalForRadioId(int radioId) {
-        for (int i = 0; i < RADIO_IDS.length; i++) {
-            if (RADIO_IDS[i] == radioId) {
-                return INTERVALS_MS[i];
-            }
-        }
-        return DEFAULT_INTERVAL_MS;
-    }
-
     /** Returns the human-readable label for a given interval in ms. */
     private String labelForInterval(long intervalMs) {
         for (int i = 0; i < INTERVALS_MS.length; i++) {
@@ -196,10 +182,10 @@ public class SettingsActivity extends AppCompatActivity {
                 return INTERVAL_LABELS[i];
             }
         }
-        return getString(R.string.freq_5s);
+        return "Every 5 seconds";
     }
 
-    /** Updates the summary text below the RadioGroup. */
+    /** Updates the summary text below the Spinner. */
     private void updatePreview(long intervalMs) {
         tvIntervalPreview.setText(getString(R.string.preview_interval, labelForInterval(intervalMs).toLowerCase()));
     }

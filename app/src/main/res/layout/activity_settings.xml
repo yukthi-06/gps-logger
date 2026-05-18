@@ -82,94 +82,14 @@
                     android:layout_marginBottom="16dp"
                     android:background="#EAEDF2" />
 
-                <!-- Radio options -->
-                <RadioGroup
-                    android:id="@+id/rgFrequency"
+                <!-- Dropdown spinner -->
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/spFrequency"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <RadioButton
-                        android:id="@+id/rb1s"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/freq_1s"
-                        android:textSize="14sp"
-                        android:textColor="#1A1A2E"
-                        android:buttonTint="#0F3460"
-                        android:gravity="center_vertical" />
-
-                    <RadioButton
-                        android:id="@+id/rb2s"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/freq_2s"
-                        android:textSize="14sp"
-                        android:textColor="#1A1A2E"
-                        android:buttonTint="#0F3460"
-                        android:gravity="center_vertical" />
-
-                    <RadioButton
-                        android:id="@+id/rb3s"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/freq_3s"
-                        android:textSize="14sp"
-                        android:textColor="#1A1A2E"
-                        android:buttonTint="#0F3460"
-                        android:gravity="center_vertical" />
-
-                    <RadioButton
-                        android:id="@+id/rb5s"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/freq_5s"
-                        android:textSize="14sp"
-                        android:textColor="#1A1A2E"
-                        android:buttonTint="#0F3460"
-                        android:gravity="center_vertical" />
-
-                    <RadioButton
-                        android:id="@+id/rb10s"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/freq_10s"
-                        android:textSize="14sp"
-                        android:textColor="#1A1A2E"
-                        android:buttonTint="#0F3460"
-                        android:gravity="center_vertical" />
-
-                    <RadioButton
-                        android:id="@+id/rb30s"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/freq_30s"
-                        android:textSize="14sp"
-                        android:textColor="#1A1A2E"
-                        android:buttonTint="#0F3460"
-                        android:gravity="center_vertical" />
-
-                    <RadioButton
-                        android:id="@+id/rb1m"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/freq_1m"
-                        android:textSize="14sp"
-                        android:textColor="#1A1A2E"
-                        android:buttonTint="#0F3460"
-                        android:gravity="center_vertical" />
-
-                    <RadioButton
-                        android:id="@+id/rb5m"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/freq_5m"
-                        android:textSize="14sp"
-                        android:textColor="#1A1A2E"
-                        android:buttonTint="#0F3460"
-                        android:gravity="center_vertical" />
-
-                </RadioGroup>
+                    android:layout_height="48dp"
+                    android:spinnerMode="dropdown"
+                    android:backgroundTint="#0F3460"
+                    android:padding="8dp" />
 
                 <!-- Divider -->
                 <View
