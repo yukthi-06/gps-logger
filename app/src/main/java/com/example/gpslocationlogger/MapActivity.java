@@ -1,6 +1,9 @@
 package com.example.gpslocationlogger;
 
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -11,6 +14,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.FileProvider;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -66,14 +71,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         setContentView(R.layout.activity_map);
 
+        baseName = getIntent().getStringExtra("TRACK_BASENAME");
+        String displayName = getIntent().getStringExtra("TRACK_DISPLAY_NAME");
+        if (displayName == null || displayName.isEmpty()) {
+            displayName = baseName;
+        }
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Track Map");
+            getSupportActionBar().setTitle(displayName);
         }
-
-        baseName = getIntent().getStringExtra("TRACK_BASENAME");
 
         // Load the configured style URL from SharedPreferences
         SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
@@ -236,11 +245,75 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_download_offline) {
+        if (item.getItemId() == R.id.action_share) {
+            shareTrack();
+            return true;
+        } else if (item.getItemId() == R.id.action_delete) {
+            deleteTrack();
+            return true;
+        } else if (item.getItemId() == R.id.action_download_offline) {
             downloadOfflineMap();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void shareTrack() {
+        File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
+        File kmlFile = new File(dir, baseName + ".kml");
+        File gpxFile = new File(dir, baseName + ".gpx");
+        File jsonFile = new File(dir, baseName + ".json");
+
+        File fileToShare = null;
+        if (kmlFile.exists()) {
+            fileToShare = kmlFile;
+        } else if (gpxFile.exists()) {
+            fileToShare = gpxFile;
+        } else if (jsonFile.exists()) {
+            fileToShare = jsonFile;
+        }
+
+        if (fileToShare == null) {
+            Toast.makeText(this, "No valid files found to share.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", fileToShare);
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("application/octet-stream");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(shareIntent, "Share Track"));
+        } catch (Exception e) {
+            Log.e(TAG, "Error sharing track file", e);
+            Toast.makeText(this, "Could not share track file.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void deleteTrack() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Track")
+                .setMessage("Are you sure you want to delete all files for this track?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
+                    String[] extensions = {".gpx", ".kml", ".json"};
+                    boolean deletedAny = false;
+                    for (String ext : extensions) {
+                        File f = new File(dir, baseName + ext);
+                        if (f.exists() && f.delete()) {
+                            deletedAny = true;
+                        }
+                    }
+                    if (deletedAny) {
+                        Toast.makeText(MapActivity.this, "Track deleted successfully.", Toast.LENGTH_SHORT).show();
+                        finish(); // Close map activity and go back to track list
+                    } else {
+                        Toast.makeText(MapActivity.this, "Failed to delete track.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void downloadOfflineMap() {

@@ -57,7 +57,8 @@ more prompts
 *	red route line is showing for Track B.  But building names, street names near it was missing.  The same building names were shown before offline option was implemented
 *	Also, FYI : I have also set the Map Style URL to https://tiles.openfreemap.org/styles/liberty
 *	In settings, set the Map tiles url to 'https://tiles.openfreemap.org/styles/liberty' as the default value
-*	
+*	When user clicks on any item from Track List, the next screen shows the route on a map.  The title of this screen should be the route name(list item text).
+	Also this screen should have Delete and Share icons with respective functionality
 *	
 *	
 *	

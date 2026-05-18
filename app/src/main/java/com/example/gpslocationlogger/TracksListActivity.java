@@ -297,6 +297,7 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
     public void onMapClick(TrackItem trackItem) {
         Intent intent = new Intent(this, MapActivity.class);
         intent.putExtra("TRACK_BASENAME", trackItem.baseName);
+        intent.putExtra("TRACK_DISPLAY_NAME", trackItem.displayName);
         startActivity(intent);
     }
 
