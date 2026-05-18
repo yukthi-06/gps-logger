@@ -41,7 +41,13 @@ import org.maplibre.android.offline.OfflineRegionStatus;
 import org.maplibre.android.offline.OfflineTilePyramidRegionDefinition;
 
 import java.io.File;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -243,35 +249,115 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private void shareTrack() {
         File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
-        File kmlFile = new File(dir, baseName + ".kml");
         File gpxFile = new File(dir, baseName + ".gpx");
+        File kmlFile = new File(dir, baseName + ".kml");
         File jsonFile = new File(dir, baseName + ".json");
 
-        File fileToShare = null;
+        List<String> availableExtensions = new ArrayList<>();
+        List<File> availableFiles = new ArrayList<>();
+
+        if (gpxFile.exists()) {
+            availableExtensions.add("GPX (.gpx)");
+            availableFiles.add(gpxFile);
+        }
         if (kmlFile.exists()) {
-            fileToShare = kmlFile;
-        } else if (gpxFile.exists()) {
-            fileToShare = gpxFile;
-        } else if (jsonFile.exists()) {
-            fileToShare = jsonFile;
+            availableExtensions.add("KML (.kml)");
+            availableFiles.add(kmlFile);
+        }
+        if (jsonFile.exists()) {
+            availableExtensions.add("JSON (.json)");
+            availableFiles.add(jsonFile);
         }
 
-        if (fileToShare == null) {
-            Toast.makeText(this, "No valid files found to share.", Toast.LENGTH_SHORT).show();
+        if (availableFiles.isEmpty()) {
+            Toast.makeText(this, "No valid files found for this track.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        if (availableFiles.size() == 1) {
+            shareSingleFile(availableFiles.get(0));
+            return;
+        }
+
+        CharSequence[] items = availableExtensions.toArray(new CharSequence[0]);
+        boolean[] checkedItems = new boolean[items.length];
+        // Default to all selected
+        for (int i = 0; i < checkedItems.length; i++) {
+            checkedItems[i] = true;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Select formats to share")
+                .setMultiChoiceItems(items, checkedItems, (dialog, which, isChecked) -> checkedItems[which] = isChecked)
+                .setPositiveButton("Share", (dialog, which) -> {
+                    List<File> selectedFiles = new ArrayList<>();
+                    for (int i = 0; i < checkedItems.length; i++) {
+                        if (checkedItems[i]) {
+                            selectedFiles.add(availableFiles.get(i));
+                        }
+                    }
+
+                    if (selectedFiles.isEmpty()) {
+                        Toast.makeText(MapActivity.this, "Please select at least one format.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if (selectedFiles.size() == 1) {
+                        shareSingleFile(selectedFiles.get(0));
+                    } else {
+                        try {
+                            File zippedFile = zipFiles(selectedFiles, baseName + ".zip");
+                            shareSingleFile(zippedFile);
+                        } catch (IOException e) {
+                            Log.e(TAG, "Failed to zip files", e);
+                            Toast.makeText(MapActivity.this, "Failed to pack files for sharing.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void shareSingleFile(File file) {
         try {
-            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", fileToShare);
+            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", file);
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("application/octet-stream");
+            if (file.getName().endsWith(".zip")) {
+                shareIntent.setType("application/zip");
+            } else {
+                shareIntent.setType("application/octet-stream");
+            }
             shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
             shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(shareIntent, "Share Track"));
         } catch (Exception e) {
-            Log.e(TAG, "Error sharing track file", e);
-            Toast.makeText(this, "Could not share track file.", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Error sharing file: " + file.getName(), e);
+            Toast.makeText(this, "Could not share file.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private File zipFiles(List<File> filesToZip, String zipFileName) throws IOException {
+        File zipFile = new File(getExternalCacheDir(), zipFileName);
+        if (zipFile.exists()) {
+            zipFile.delete();
+        }
+
+        try (ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)))) {
+            byte[] buffer = new byte[4096];
+            for (File file : filesToZip) {
+                if (!file.exists()) continue;
+                try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+                    ZipEntry entry = new ZipEntry(file.getName());
+                    zos.putNextEntry(entry);
+                    int bytesRead;
+                    while ((bytesRead = bis.read(buffer)) != -1) {
+                        zos.write(buffer, 0, bytesRead);
+                    }
+                    zos.closeEntry();
+                }
+            }
+        }
+        return zipFile;
     }
 
     private void deleteTrack() {

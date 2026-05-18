@@ -61,7 +61,9 @@ more prompts
 	Also this screen should have Delete and Share icons with respective functionality
 *	The track name text along with Share icon, Delete icon, Download icon is too cramped.
 	Move the buttons to a second line and keep the top line just for the name
-*	
+*	On 'Share" of a track, show checkboxes for "gpx, kml, json".  
+	If more than one option is selected, zip those files and proceed for sharing.  
+	If only one item is selected, then share that file as it is....
 *	
 *	
 *	
