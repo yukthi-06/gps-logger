@@ -53,6 +53,10 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
         String extensionsStr = TextUtils.join(", ", trackItem.extensions);
         holder.tvTrackFiles.setText("Files: " + extensionsStr);
 
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onMapClick(trackItem);
+        });
+
         holder.btnMap.setOnClickListener(v -> {
             if (listener != null) listener.onMapClick(trackItem);
         });
