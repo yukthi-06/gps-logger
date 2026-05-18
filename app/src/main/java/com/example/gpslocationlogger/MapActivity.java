@@ -319,7 +319,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 .setNegativeButton("Cancel", null)
                 .show();
 
-        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.parseColor("#0F3460"));
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1E88E5"));
         dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#888EAB"));
     }
 
