@@ -66,7 +66,7 @@ more prompts
 	If only one item is selected, then share that file as it is....
 *	DELETE alterbox buttons, SHARE alertbox buttons are dark in color and no contrast.  change to more visible colors 
 *	DELETE button color is OK.  the SHARE button is still not clearly visible with the grey background of the alertbox.  
-*	
+*	Provide logging frequency of 1, 2, 3 seconds also in settings
 *	
 *	
 *	

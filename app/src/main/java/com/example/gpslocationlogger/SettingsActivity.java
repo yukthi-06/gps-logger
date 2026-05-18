@@ -53,6 +53,9 @@ public class SettingsActivity extends AppCompatActivity {
 
     // Maps each RadioButton ID to its interval in milliseconds
     private static final int[] RADIO_IDS = {
+            R.id.rb1s,
+            R.id.rb2s,
+            R.id.rb3s,
             R.id.rb5s,
             R.id.rb10s,
             R.id.rb30s,
@@ -61,6 +64,9 @@ public class SettingsActivity extends AppCompatActivity {
     };
 
     private static final long[] INTERVALS_MS = {
+            1_000L,
+            2_000L,
+            3_000L,
             5_000L,
             10_000L,
             30_000L,
@@ -69,6 +75,9 @@ public class SettingsActivity extends AppCompatActivity {
     };
 
     private static final String[] INTERVAL_LABELS = {
+            "Every 1 second",
+            "Every 2 seconds",
+            "Every 3 seconds",
             "Every 5 seconds",
             "Every 10 seconds",
             "Every 30 seconds",

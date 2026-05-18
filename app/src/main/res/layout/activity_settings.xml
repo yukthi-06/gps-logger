@@ -90,6 +90,36 @@
                     android:orientation="vertical">
 
                     <RadioButton
+                        android:id="@+id/rb1s"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="@string/freq_1s"
+                        android:textSize="14sp"
+                        android:textColor="#1A1A2E"
+                        android:buttonTint="#0F3460"
+                        android:gravity="center_vertical" />
+
+                    <RadioButton
+                        android:id="@+id/rb2s"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="@string/freq_2s"
+                        android:textSize="14sp"
+                        android:textColor="#1A1A2E"
+                        android:buttonTint="#0F3460"
+                        android:gravity="center_vertical" />
+
+                    <RadioButton
+                        android:id="@+id/rb3s"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="@string/freq_3s"
+                        android:textSize="14sp"
+                        android:textColor="#1A1A2E"
+                        android:buttonTint="#0F3460"
+                        android:gravity="center_vertical" />
+
+                    <RadioButton
                         android:id="@+id/rb5s"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
