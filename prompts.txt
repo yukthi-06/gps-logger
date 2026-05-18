@@ -69,7 +69,7 @@ more prompts
 *	Provide logging frequency of 1, 2, 3 seconds also in settings
 *	default action on track list item should be "Show route on map"
 *	Logging frequency in settings - make it a proper dropdown.
-*	
+*	Map Style URL text field doesnt look like a text field.  Add a border to the field
 *	
 *	
 

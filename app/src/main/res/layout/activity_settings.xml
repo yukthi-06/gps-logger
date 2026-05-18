@@ -236,7 +236,9 @@
                     android:hint="https://example.com/style.json"
                     android:textSize="14sp"
                     android:textColor="#1A1A2E"
-                    android:padding="12dp" />
+                    android:padding="12dp"
+                    android:background="@drawable/bg_edit_text"
+                    android:layout_marginTop="8dp" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
