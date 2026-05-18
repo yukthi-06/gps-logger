@@ -1,8 +1,10 @@
 package com.example.gpslocationlogger;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -286,10 +288,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             checkedItems[i] = true;
         }
 
-        new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Select formats to share")
-                .setMultiChoiceItems(items, checkedItems, (dialog, which, isChecked) -> checkedItems[which] = isChecked)
-                .setPositiveButton("Share", (dialog, which) -> {
+                .setMultiChoiceItems(items, checkedItems, (dialogInterface, which, isChecked) -> checkedItems[which] = isChecked)
+                .setPositiveButton("Share", (dialogInterface, which) -> {
                     List<File> selectedFiles = new ArrayList<>();
                     for (int i = 0; i < checkedItems.length; i++) {
                         if (checkedItems[i]) {
@@ -316,6 +318,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.parseColor("#0F3460"));
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#888EAB"));
     }
 
     private void shareSingleFile(File file) {
@@ -361,10 +366,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private void deleteTrack() {
-        new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Delete Track")
                 .setMessage("Are you sure you want to delete all files for this track?")
-                .setPositiveButton("Delete", (dialog, which) -> {
+                .setPositiveButton("Delete", (dialogInterface, which) -> {
                     File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
                     String[] extensions = {".gpx", ".kml", ".json"};
                     boolean deletedAny = false;
@@ -383,6 +388,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.parseColor("#D32F2F"));
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#888EAB"));
     }
 
     private void downloadOfflineMap() {

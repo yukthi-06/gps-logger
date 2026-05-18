@@ -2,6 +2,7 @@ package com.example.gpslocationlogger;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Color;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -302,10 +303,10 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
             checkedItems[i] = true;
         }
 
-        new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Select formats to share")
-                .setMultiChoiceItems(items, checkedItems, (dialog, which, isChecked) -> checkedItems[which] = isChecked)
-                .setPositiveButton("Share", (dialog, which) -> {
+                .setMultiChoiceItems(items, checkedItems, (dialogInterface, which, isChecked) -> checkedItems[which] = isChecked)
+                .setPositiveButton("Share", (dialogInterface, which) -> {
                     List<File> selectedFiles = new ArrayList<>();
                     for (int i = 0; i < checkedItems.length; i++) {
                         if (checkedItems[i]) {
@@ -332,6 +333,9 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.parseColor("#0F3460"));
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#888EAB"));
     }
 
     private void shareSingleFile(File file) {
@@ -386,10 +390,10 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
 
     @Override
     public void onDeleteClick(TrackItem trackItem) {
-        new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Delete Track")
                 .setMessage("Are you sure you want to delete all files for this track?")
-                .setPositiveButton("Delete", (dialog, which) -> {
+                .setPositiveButton("Delete", (dialogInterface, which) -> {
                     File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
                     boolean deletedAny = false;
                     for (String ext : trackItem.extensions) {
@@ -407,6 +411,9 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.parseColor("#D32F2F"));
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#888EAB"));
     }
 
     @Override

@@ -1,6 +1,8 @@
 package com.example.gpslocationlogger;
 
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -213,10 +215,10 @@ public class SettingsActivity extends AppCompatActivity {
                     return;
                 }
 
-                new androidx.appcompat.app.AlertDialog.Builder(SettingsActivity.this)
+                androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(SettingsActivity.this)
                         .setTitle("Clear Offline Maps?")
                         .setMessage("This will delete all downloaded offline map tiles. You will need to download them again for offline use.")
-                        .setPositiveButton("Clear", (dialog, which) -> {
+                        .setPositiveButton("Clear", (dialogInterface, which) -> {
                             final int total = offlineRegions.length;
                             final java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);
 
@@ -240,6 +242,9 @@ public class SettingsActivity extends AppCompatActivity {
                         })
                         .setNegativeButton("Cancel", null)
                         .show();
+
+                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.parseColor("#D32F2F"));
+                dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#888EAB"));
             }
 
             @Override

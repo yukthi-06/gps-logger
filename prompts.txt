@@ -64,7 +64,7 @@ more prompts
 *	On 'Share" of a track, show checkboxes for "gpx, kml, json".  
 	If more than one option is selected, zip those files and proceed for sharing.  
 	If only one item is selected, then share that file as it is....
-*	
+*	DELETE alterbox buttons, SHARE alertbox buttons are dark in color and no contrast.  change to more visible colors 
 *	
 *	
 *	
