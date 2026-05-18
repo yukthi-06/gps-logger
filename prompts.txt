@@ -70,6 +70,19 @@ more prompts
 *	default action on track list item should be "Show route on map"
 *	Logging frequency in settings - make it a proper dropdown.
 *	Map Style URL text field doesnt look like a text field.  Add a border to the field
+*	the drop down doesnt look good. Replace with a better looking one.
+	Also, pre-populate the dropdown with currently saved value
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
+*	
 *	
 *	
 

@@ -99,8 +99,8 @@ public class SettingsActivity extends AppCompatActivity {
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         // ── 1. Logging Frequency (Dropdown Spinner) ──
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, INTERVAL_LABELS);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_spinner, INTERVAL_LABELS);
+        adapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
         spFrequency.setAdapter(adapter);
 
         long savedInterval = prefs.getLong(KEY_INTERVAL_MS, DEFAULT_INTERVAL_MS);
@@ -111,20 +111,23 @@ public class SettingsActivity extends AppCompatActivity {
                 break;
             }
         }
-        spFrequency.setSelection(selectionIndex);
-        updatePreview(savedInterval);
 
-        spFrequency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                long interval = INTERVALS_MS[position];
-                prefs.edit().putLong(KEY_INTERVAL_MS, interval).apply();
-                updatePreview(interval);
-            }
+        final int finalIndex = selectionIndex;
+        spFrequency.post(() -> {
+            spFrequency.setSelection(finalIndex, false);
+            spFrequency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    long interval = INTERVALS_MS[position];
+                    prefs.edit().putLong(KEY_INTERVAL_MS, interval).apply();
+                    updatePreview(interval);
+                }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
         });
+        updatePreview(savedInterval);
 
         // ── 2. Format Selection ──
         cbJson.setChecked(prefs.getBoolean(KEY_SAVE_JSON, true));

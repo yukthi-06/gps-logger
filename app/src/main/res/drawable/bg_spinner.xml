@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium spinner background outline with integrated custom dropdown arrow -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <layer-list>
+            <!-- Border box background -->
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#F8F9FA" />
+                    <stroke
+                        android:width="1dp"
+                        android:color="#D0D4DC" />
+                    <corners android:radius="8dp" />
+                </shape>
+            </item>
+            <!-- Custom modern dropdown arrow vector icon -->
+            <item
+                android:right="16dp"
+                android:gravity="end|center_vertical">
+                <vector
+                    android:width="12dp"
+                    android:height="12dp"
+                    android:viewportWidth="24"
+                    android:viewportHeight="24">
+                    <path
+                        android:fillColor="#0F3460"
+                        android:pathData="M7,10l5,5 5,-5H7z" />
+                </vector>
+            </item>
+        </layer-list>
+    </item>
+</selector>
