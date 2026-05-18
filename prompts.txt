@@ -59,7 +59,8 @@ more prompts
 *	In settings, set the Map tiles url to 'https://tiles.openfreemap.org/styles/liberty' as the default value
 *	When user clicks on any item from Track List, the next screen shows the route on a map.  The title of this screen should be the route name(list item text).
 	Also this screen should have Delete and Share icons with respective functionality
-*	
+*	The track name text along with Share icon, Delete icon, Download icon is too cramped.
+	Move the buttons to a second line and keep the top line just for the name
 *	
 *	
 *	

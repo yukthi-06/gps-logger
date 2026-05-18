@@ -13,6 +13,108 @@
         app:titleTextColor="@android:color/white"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
+    <!-- Second Line Action Buttons -->
+    <LinearLayout
+        android:id="@+id/llMapActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#FFFFFF"
+        android:paddingVertical="8dp"
+        android:paddingHorizontal="12dp"
+        android:gravity="center">
+
+        <!-- Share Button -->
+        <LinearLayout
+            android:id="@+id/btnShareMap"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="6dp"
+            android:background="@drawable/bg_action_button"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@android:drawable/ic_menu_share"
+                app:tint="#0F3460"
+                android:contentDescription="Share map" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="Share"
+                android:textColor="#0F3460"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Download Button -->
+        <LinearLayout
+            android:id="@+id/btnDownloadMap"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="6dp"
+            android:background="@drawable/bg_action_button"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@android:drawable/stat_sys_download"
+                app:tint="#0F3460"
+                android:contentDescription="Download offline map" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="Offline"
+                android:textColor="#0F3460"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Delete Button -->
+        <LinearLayout
+            android:id="@+id/btnDeleteMap"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="6dp"
+            android:background="@drawable/bg_action_button_delete"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@android:drawable/ic_menu_delete"
+                app:tint="#D32F2F"
+                android:contentDescription="Delete track files" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="Delete"
+                android:textColor="#D32F2F"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Thin shadow/divider line below the action bar -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E2E8F0" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">

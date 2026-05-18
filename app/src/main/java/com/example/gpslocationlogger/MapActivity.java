@@ -98,6 +98,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         tvDownloadStatus = findViewById(R.id.tvDownloadStatus);
         pbDownload = findViewById(R.id.pbDownload);
         
+        findViewById(R.id.btnShareMap).setOnClickListener(v -> shareTrack());
+        findViewById(R.id.btnDeleteMap).setOnClickListener(v -> deleteTrack());
+        findViewById(R.id.btnDownloadMap).setOnClickListener(v -> downloadOfflineMap());
+
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
     }
@@ -235,27 +239,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public boolean onSupportNavigateUp() {
         finish();
         return true;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_map, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_share) {
-            shareTrack();
-            return true;
-        } else if (item.getItemId() == R.id.action_delete) {
-            deleteTrack();
-            return true;
-        } else if (item.getItemId() == R.id.action_download_offline) {
-            downloadOfflineMap();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     private void shareTrack() {
