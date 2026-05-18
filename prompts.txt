@@ -72,7 +72,7 @@ more prompts
 *	Map Style URL text field doesnt look like a text field.  Add a border to the field
 *	the drop down doesnt look good. Replace with a better looking one.
 	Also, pre-populate the dropdown with currently saved value
-*	
+*	the inside of drop down is very dark.  make it bright and normal color
 *	
 *	
 *	
