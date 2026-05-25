@@ -116,6 +116,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(@NonNull MapLibreMap mapLibreMap) {
+        // Allow user to zoom in up to level 24.0 (beyond default limits)
+        mapLibreMap.setMaxZoomPreference(24.0);
+
         // Set up did-fail listener to fall back to local asset style if offline and not cached
         mapView.addOnDidFailLoadingMapListener(new MapView.OnDidFailLoadingMapListener() {
             private boolean fallbackTriggered = false;
@@ -222,8 +225,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 return;
             }
 
-            // Save bounds for offline download feature
-            trackBounds = boundsBuilder.build();
+            // Save bounds for offline download feature (ensuring at least 20m x 20m span)
+            trackBounds = ensureMinBoundsSize(boundsBuilder.build(), 20.0);
 
             // Draw polyline using the annotation plugin
             LineManager lineManager = new LineManager(mapView, mapLibreMap, style);
@@ -241,6 +244,74 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             Log.e(TAG, "Failed to load map data", e);
             Toast.makeText(this, "Failed to parse track data.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private LatLngBounds ensureMinBoundsSize(LatLngBounds bounds, double minSizeMeters) {
+        if (bounds == null) return null;
+
+        double latNorth = bounds.getLatNorth();
+        double latSouth = bounds.getLatSouth();
+        double lonEast = bounds.getLonEast();
+        double lonWest = bounds.getLonWest();
+
+        double centerLat = (latNorth + latSouth) / 2.0;
+        double centerLon = (lonEast + lonWest) / 2.0;
+
+        double currentLatSpan = latNorth - latSouth;
+        double currentLonSpan = lonEast - lonWest;
+
+        // 1 degree of latitude is ~111,111 meters
+        double latDeltaForMin = minSizeMeters / 111111.0;
+
+        double cosLat = Math.cos(Math.toRadians(centerLat));
+        if (cosLat < 0.01) {
+            cosLat = 0.01;
+        }
+        double lonDeltaForMin = minSizeMeters / (111111.0 * cosLat);
+
+        boolean adjusted = false;
+
+        if (currentLatSpan < latDeltaForMin) {
+            latNorth = centerLat + latDeltaForMin / 2.0;
+            latSouth = centerLat - latDeltaForMin / 2.0;
+
+            // Bounds check
+            if (latNorth > 90.0) {
+                double shift = latNorth - 90.0;
+                latNorth = 90.0;
+                latSouth -= shift;
+            }
+            if (latSouth < -90.0) {
+                double shift = -90.0 - latSouth;
+                latSouth = -90.0;
+                latNorth += shift;
+            }
+            adjusted = true;
+        }
+
+        if (currentLonSpan < lonDeltaForMin) {
+            lonEast = centerLon + lonDeltaForMin / 2.0;
+            lonWest = centerLon - lonDeltaForMin / 2.0;
+
+            // Bounds check
+            if (lonEast > 180.0) {
+                double shift = lonEast - 180.0;
+                lonEast = 180.0;
+                lonWest -= shift;
+            }
+            if (lonWest < -180.0) {
+                double shift = -180.0 - lonWest;
+                lonWest = -180.0;
+                lonEast += shift;
+            }
+            adjusted = true;
+        }
+
+        if (adjusted) {
+            return LatLngBounds.from(latNorth, lonEast, latSouth, lonWest);
+        }
+
+        return bounds;
     }
 
     @Override
