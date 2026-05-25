@@ -225,8 +225,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 return;
             }
 
-            // Save bounds for offline download feature (ensuring at least 20m x 20m span)
-            trackBounds = ensureMinBoundsSize(boundsBuilder.build(), 20.0);
+            // Save bounds for offline download feature (ensuring at least 50m x 50m span)
+            trackBounds = ensureMinBoundsSize(boundsBuilder.build(), 50.0);
 
             // Draw polyline using the annotation plugin
             LineManager lineManager = new LineManager(mapView, mapLibreMap, style);
