@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -41,7 +42,14 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
     @Override
     public void onBindViewHolder(@NonNull TrackViewHolder holder, int position) {
         TrackItem trackItem = trackList.get(position);
-        holder.tvTrackName.setText(trackItem.displayName != null ? trackItem.displayName : trackItem.baseName);
+        
+        if (trackItem.isRecordedPoint()) {
+            holder.ivTrackIcon.setImageResource(android.R.drawable.ic_menu_mylocation);
+            holder.tvTrackName.setText("📍 " + (trackItem.displayName != null ? trackItem.displayName : trackItem.baseName));
+        } else {
+            holder.ivTrackIcon.setImageResource(android.R.drawable.ic_menu_mapmode);
+            holder.tvTrackName.setText("🏁 " + (trackItem.displayName != null ? trackItem.displayName : trackItem.baseName));
+        }
         
         if (trackItem.displayTimestamp != null && !trackItem.displayTimestamp.isEmpty()) {
             holder.tvTrackTimestamp.setText(trackItem.displayTimestamp);
@@ -76,6 +84,7 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
     }
 
     public static class TrackViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivTrackIcon;
         TextView tvTrackName;
         TextView tvTrackTimestamp;
         TextView tvTrackFiles;
@@ -85,6 +94,7 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
 
         public TrackViewHolder(@NonNull View itemView) {
             super(itemView);
+            ivTrackIcon = itemView.findViewById(R.id.ivTrackIcon);
             tvTrackName = itemView.findViewById(R.id.tvTrackName);
             tvTrackTimestamp = itemView.findViewById(R.id.tvTrackTimestamp);
             tvTrackFiles = itemView.findViewById(R.id.tvTrackFiles);

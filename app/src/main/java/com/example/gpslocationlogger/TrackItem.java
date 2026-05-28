@@ -14,4 +14,8 @@ public class TrackItem {
         this.baseName = baseName;
         this.extensions = new ArrayList<>();
     }
+
+    public boolean isRecordedPoint() {
+        return baseName != null && baseName.contains("_Recorded_Point");
+    }
 }

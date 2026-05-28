@@ -390,9 +390,10 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
 
     @Override
     public void onDeleteClick(TrackItem trackItem) {
+        String itemType = trackItem.isRecordedPoint() ? "Recorded Point" : "Track";
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Delete Track")
-                .setMessage("Are you sure you want to delete all files for this track?")
+                .setTitle("Delete " + itemType)
+                .setMessage("Are you sure you want to delete all files for this " + itemType.toLowerCase() + "?")
                 .setPositiveButton("Delete", (dialogInterface, which) -> {
                     File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
                     boolean deletedAny = false;
@@ -403,10 +404,10 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
                         }
                     }
                     if (deletedAny) {
-                        Toast.makeText(TracksListActivity.this, "Track deleted", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(TracksListActivity.this, itemType + " deleted", Toast.LENGTH_SHORT).show();
                         loadTracks();
                     } else {
-                        Toast.makeText(TracksListActivity.this, "Failed to delete track", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(TracksListActivity.this, "Failed to delete " + itemType.toLowerCase(), Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("Cancel", null)
