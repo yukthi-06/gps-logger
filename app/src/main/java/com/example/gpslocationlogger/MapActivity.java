@@ -227,6 +227,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 return;
             }
 
+            if (points.size() == 1) {
+                LatLng p = points.get(0);
+                double delta = 0.00025; // roughly 25 meters offset
+                boundsBuilder.include(new LatLng(p.getLatitude() + delta, p.getLongitude() + delta));
+                boundsBuilder.include(new LatLng(p.getLatitude() - delta, p.getLongitude() - delta));
+            }
+
             // Save bounds for offline download feature (ensuring at least 50m x 50m span)
             trackBounds = ensureMinBoundsSize(boundsBuilder.build(), 50.0);
 

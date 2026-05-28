@@ -45,7 +45,13 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
         
         if (trackItem.isRecordedPoint()) {
             holder.ivTrackIcon.setImageResource(android.R.drawable.ic_menu_mylocation);
-            holder.tvTrackName.setText("📍 " + (trackItem.displayName != null ? trackItem.displayName : trackItem.baseName));
+            String displayName = trackItem.displayName != null ? trackItem.displayName : trackItem.baseName;
+            if (displayName.startsWith("Recorded Point ")) {
+                displayName = displayName.substring("Recorded Point ".length());
+            } else if ("Recorded Point".equals(displayName)) {
+                displayName = "Single Point";
+            }
+            holder.tvTrackName.setText("📍 " + displayName);
         } else {
             holder.ivTrackIcon.setImageResource(android.R.drawable.ic_menu_mapmode);
             holder.tvTrackName.setText("🏁 " + (trackItem.displayName != null ? trackItem.displayName : trackItem.baseName));
