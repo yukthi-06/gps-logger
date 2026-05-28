@@ -36,6 +36,8 @@ import org.maplibre.android.maps.OnMapReadyCallback;
 import org.maplibre.android.maps.Style;
 import org.maplibre.android.plugins.annotation.LineManager;
 import org.maplibre.android.plugins.annotation.LineOptions;
+import org.maplibre.android.plugins.annotation.CircleManager;
+import org.maplibre.android.plugins.annotation.CircleOptions;
 import org.maplibre.android.offline.OfflineManager;
 import org.maplibre.android.offline.OfflineRegion;
 import org.maplibre.android.offline.OfflineRegionError;
@@ -188,11 +190,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
 
             if ("GPX".equals(format)) {
-                Pattern p = Pattern.compile("<trkpt lat=\"([^\"]+)\" lon=\"([^\"]+)\">");
+                Pattern p = Pattern.compile("<(trkpt|wpt) lat=\"([^\"]+)\" lon=\"([^\"]+)\">");
                 Matcher m = p.matcher(fileStr);
                 while (m.find()) {
-                    double lat = Double.parseDouble(m.group(1));
-                    double lon = Double.parseDouble(m.group(2));
+                    double lat = Double.parseDouble(m.group(2));
+                    double lon = Double.parseDouble(m.group(3));
                     LatLng latLng = new LatLng(lat, lon);
                     points.add(latLng);
                     boundsBuilder.include(latLng);
@@ -228,14 +230,24 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // Save bounds for offline download feature (ensuring at least 50m x 50m span)
             trackBounds = ensureMinBoundsSize(boundsBuilder.build(), 50.0);
 
-            // Draw polyline using the annotation plugin
-            LineManager lineManager = new LineManager(mapView, mapLibreMap, style);
-            LineOptions lineOptions = new LineOptions()
-                    .withLatLngs(points)
-                    .withLineColor("#D32F2F") // Red color
-                    .withLineWidth(5.0f);
-            
-            lineManager.create(lineOptions);
+            // Draw polyline or marker using the annotation plugin
+            if (points.size() == 1) {
+                CircleManager circleManager = new CircleManager(mapView, mapLibreMap, style);
+                CircleOptions circleOptions = new CircleOptions()
+                        .withLatLng(points.get(0))
+                        .withCircleColor("#D32F2F") // Red color
+                        .withCircleRadius(10.0f)
+                        .withCircleStrokeColor("#FFFFFF")
+                        .withCircleStrokeWidth(2.0f);
+                circleManager.create(circleOptions);
+            } else {
+                LineManager lineManager = new LineManager(mapView, mapLibreMap, style);
+                LineOptions lineOptions = new LineOptions()
+                        .withLatLngs(points)
+                        .withLineColor("#D32F2F") // Red color
+                        .withLineWidth(5.0f);
+                lineManager.create(lineOptions);
+            }
 
             // Zoom to fit the bounding box with 100px padding
             mapLibreMap.easeCamera(CameraUpdateFactory.newLatLngBounds(trackBounds, 100));

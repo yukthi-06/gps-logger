@@ -46,6 +46,10 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -86,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
 
     // ── UI ──────────────────────────────────────────────────────────────────
+    private Button btnRecordPoint;
     private Button btnStartTracking;
     private Button btnPauseTracking;
     private Button btnEndTracking;
@@ -103,9 +108,11 @@ public class MainActivity extends AppCompatActivity {
     private View mainContent;
 
     // ── Service ─────────────────────────────────────────────────────────────
+    private FusedLocationProviderClient fusedLocationClient;
     private LocationService locationService;
     private boolean isBound = false;
     private boolean isTracking = false;
+    private boolean isRecordingPointPending = false;
     private Uri lastSavedUri = null;
     private String lastSavedName = null;
 
@@ -147,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Bind views
+        btnRecordPoint   = findViewById(R.id.btnRecordPoint);
         btnStartTracking = findViewById(R.id.btnStartTracking);
         btnPauseTracking = findViewById(R.id.btnPauseTracking);
         btnEndTracking   = findViewById(R.id.btnEndTracking);
@@ -160,7 +168,11 @@ public class MainActivity extends AppCompatActivity {
         tvSavePath       = findViewById(R.id.tvSavePath);
         mainContent      = findViewById(R.id.main_content);
 
+        // Initialize FusedLocationProviderClient
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         // Button listeners
+        btnRecordPoint.setOnClickListener(v -> onRecordPointClicked());
         btnStartTracking.setOnClickListener(v -> onStartTrackingClicked());
         btnPauseTracking.setOnClickListener(v -> onPauseTrackingClicked());
         btnEndTracking.setOnClickListener(v -> onEndTrackingClicked());
@@ -254,6 +266,7 @@ public class MainActivity extends AppCompatActivity {
             // Hide EVERYTHING except the status bar and the icon
             findViewById(R.id.cardStatus).setVisibility(View.GONE);
             findViewById(R.id.cardCoordinates).setVisibility(View.GONE);
+            if (btnRecordPoint != null) btnRecordPoint.setVisibility(View.GONE);
             findViewById(R.id.btnStartTracking).setVisibility(View.GONE);
             findViewById(R.id.btnPauseTracking).setVisibility(View.GONE);
             findViewById(R.id.btnEndTracking).setVisibility(View.GONE);
@@ -293,6 +306,7 @@ public class MainActivity extends AppCompatActivity {
             findViewById(R.id.cardCoordinates).setVisibility(View.VISIBLE);
             
             // Restore visibility of buttons and info card
+            if (btnRecordPoint != null) btnRecordPoint.setVisibility(View.VISIBLE);
             btnStartTracking.setVisibility(View.VISIBLE);
             btnPauseTracking.setVisibility(View.VISIBLE);
             btnEndTracking.setVisibility(View.VISIBLE);
@@ -347,6 +361,145 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ── Button Handlers ────────────────────────────────────────────────────
+    private boolean hasLocationPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                return false;
+            }
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void onRecordPointClicked() {
+        isRecordingPointPending = true;
+        if (hasLocationPermissions()) {
+            isRecordingPointPending = false;
+            recordSinglePoint();
+        } else {
+            checkAndRequestPermission();
+        }
+    }
+
+    private void recordSinglePoint() {
+        Toast.makeText(this, "Getting accurate GPS location...", Toast.LENGTH_SHORT).show();
+        try {
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        saveSinglePointToFile(location);
+                    } else {
+                        fusedLocationClient.getLastLocation().addOnSuccessListener(lastLoc -> {
+                            if (lastLoc != null) {
+                                saveSinglePointToFile(lastLoc);
+                            } else {
+                                Toast.makeText(MainActivity.this, "Unable to get GPS location. Make sure GPS is enabled.", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    fusedLocationClient.getLastLocation().addOnSuccessListener(lastLoc -> {
+                        if (lastLoc != null) {
+                            saveSinglePointToFile(lastLoc);
+                        } else {
+                            Toast.makeText(MainActivity.this, "Failed to get GPS location: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                });
+        } catch (SecurityException e) {
+            Log.e(TAG, "Location permission missing", e);
+            Toast.makeText(this, "Location permission missing.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void saveSinglePointToFile(Location location) {
+        String fileTimestamp = ZonedDateTime.now()
+                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                .replace(":", "-");
+
+        String infoText = etTrackingInfo.getText().toString().trim();
+        String sanitizedInfo = sanitizeFilename(infoText);
+        
+        String baseName;
+        if (!sanitizedInfo.isEmpty()) {
+            baseName = "location_logs_" + fileTimestamp + "_Recorded_Point_" + sanitizedInfo;
+        } else {
+            baseName = "location_logs_" + fileTimestamp + "_Recorded_Point";
+        }
+
+        List<JSONObject> records = new ArrayList<>();
+        try {
+            JSONObject record = new JSONObject();
+            record.put("latitude", location.getLatitude());
+            record.put("longitude", location.getLongitude());
+            record.put("timestamp", ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+            records.add(record);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error formatting single point JSON", e);
+            return;
+        }
+
+        SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
+        boolean saveJson = prefs.getBoolean(SettingsActivity.KEY_SAVE_JSON, true);
+        boolean saveGpx  = prefs.getBoolean(SettingsActivity.KEY_SAVE_GPX, true);
+        boolean saveKml  = prefs.getBoolean(SettingsActivity.KEY_SAVE_KML, true);
+
+        if (saveJson) {
+            try {
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.put(records.get(0));
+                saveToFile(jsonArray.toString(2), baseName + ".json");
+            } catch (JSONException e) {
+                Log.e(TAG, "Error formatting JSON", e);
+            }
+        }
+
+        if (saveGpx) {
+            String gpxContent = generateGpx(records);
+            saveToFile(gpxContent, baseName + ".gpx");
+        }
+
+        if (saveKml) {
+            String kmlContent = generateKml(records);
+            lastSavedUri = saveToFile(kmlContent, baseName + ".kml");
+            lastSavedName = baseName + ".kml";
+        } else if (saveGpx) {
+            String gpxContent = generateGpx(records);
+            lastSavedUri = saveToFile(gpxContent, baseName + ".gpx");
+            lastSavedName = baseName + ".gpx";
+        } else if (saveJson) {
+            try {
+                JSONArray jsonArray = new JSONArray();
+                jsonArray.put(records.get(0));
+                lastSavedUri = saveToFile(jsonArray.toString(2), baseName + ".json");
+                lastSavedName = baseName + ".json";
+            } catch (JSONException ignored) {}
+        }
+
+        if (lastSavedUri != null) {
+            tvSavePath.setText("📁 Last saved: " + lastSavedName);
+            tvSavePath.setVisibility(View.VISIBLE);
+            invalidateOptionsMenu();
+            etTrackingInfo.setText("");
+            etTrackingInfo.setEnabled(true);
+            ivLockTrackingInfo.setEnabled(true);
+            ivLockTrackingInfo.setAlpha(1.0f);
+            
+            tvCoordinates.setText(String.format("Lat: %.6f   Lon: %.6f", location.getLatitude(), location.getLongitude()));
+            
+            Toast.makeText(this, String.format("Recorded Point Saved:\nLat: %.6f, Lon: %.6f", 
+                    location.getLatitude(), location.getLongitude()), Toast.LENGTH_LONG).show();
+        }
+    }
+
     private void onStartTrackingClicked() {
         checkAndRequestPermission();
     }
@@ -406,7 +559,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (listPermissionsNeeded.isEmpty()) {
-            startTracking();
+            if (isRecordingPointPending) {
+                isRecordingPointPending = false;
+                recordSinglePoint();
+            } else {
+                startTracking();
+            }
         } else {
             ActivityCompat.requestPermissions(
                     this,
@@ -435,8 +593,14 @@ public class MainActivity extends AppCompatActivity {
 
             if (allGranted) {
                 Log.d(TAG, "Permissions granted.");
-                startTracking();
+                if (isRecordingPointPending) {
+                    isRecordingPointPending = false;
+                    recordSinglePoint();
+                } else {
+                    startTracking();
+                }
             } else {
+                isRecordingPointPending = false;
                 Log.w(TAG, "Permissions denied.");
                 Toast.makeText(this, "Required permissions denied.", Toast.LENGTH_SHORT).show();
             }

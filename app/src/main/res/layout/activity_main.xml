@@ -231,6 +231,26 @@
             </androidx.cardview.widget.CardView>
 
             <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <!-- Record Point Button                                                   -->
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <Button
+                android:id="@+id/btnRecordPoint"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Record a point"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:paddingVertical="14dp"
+                android:enabled="true"
+                android:backgroundTint="#0F3460"
+                app:cornerRadius="12dp"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginTop="32dp"
+                app:layout_constraintTop_toBottomOf="@id/cardTrackingInfo"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
             <!-- ⑤ Start Tracking — top button                                         -->
             <!-- ══════════════════════════════════════════════════════════════════════ -->
             <Button
@@ -245,8 +265,8 @@
                 android:backgroundTint="#0F3460"
                 app:cornerRadius="12dp"
                 android:layout_marginHorizontal="24dp"
-                android:layout_marginTop="32dp"
-                app:layout_constraintTop_toBottomOf="@id/cardTrackingInfo"
+                android:layout_marginTop="12dp"
+                app:layout_constraintTop_toBottomOf="@id/btnRecordPoint"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
