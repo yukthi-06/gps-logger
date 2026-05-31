@@ -831,7 +831,7 @@ public class MainActivity extends AppCompatActivity {
                 double lat = record.getDouble("latitude");
                 double lon = record.getDouble("longitude");
                 String time = record.getString("timestamp");
-                sb.append(String.format("      <trkpt lat=\"%.6f\" lon=\"%.6f\">\n", lat, lon));
+                sb.append("      <trkpt lat=\"").append(Double.toString(lat)).append("\" lon=\"").append(Double.toString(lon)).append("\">\n");
                 sb.append("        <time>").append(time).append("</time>\n");
                 sb.append("      </trkpt>\n");
             } catch (JSONException e) {
@@ -863,7 +863,7 @@ public class MainActivity extends AppCompatActivity {
                 double lat = record.getDouble("latitude");
                 double lon = record.getDouble("longitude");
                 // KML coordinates are lon,lat,alt
-                sb.append(String.format("          %.6f,%.6f,0\n", lon, lat));
+                sb.append("          ").append(Double.toString(lon)).append(",").append(Double.toString(lat)).append(",0\n");
             } catch (JSONException e) {
                 Log.e(TAG, "KML row skip", e);
             }
