@@ -317,7 +317,7 @@
                 android:id="@+id/tvSavePath"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/label_save_path"
+                android:visibility="gone"
                 android:textSize="12sp"
                 android:textColor="#888EAB"
                 android:gravity="center"
