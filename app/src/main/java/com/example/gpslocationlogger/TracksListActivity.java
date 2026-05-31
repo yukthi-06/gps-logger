@@ -222,6 +222,35 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
 
     private void parseTrackItemDetails(TrackItem item) {
         String name = item.baseName;
+        String tempName = name;
+        if (tempName.startsWith("gps_")) {
+            tempName = tempName.substring("gps_".length());
+        } else if (tempName.startsWith("location_logs_")) {
+            tempName = tempName.substring("location_logs_".length());
+        }
+
+        // Check if prefixed with timestamp of format YYYY-MM-DD.HHmmss or YYYY-MM-DDThhmmss (17 characters)
+        if (tempName.length() >= 17) {
+            String potentialTimestamp = tempName.substring(0, 17);
+            if (potentialTimestamp.matches("\\d{4}-\\d{2}-\\d{2}[.T]\\d{6}")) {
+                String remainder = tempName.substring(17);
+                if (remainder.startsWith("_") || remainder.startsWith("-")) {
+                    remainder = remainder.substring(1);
+                }
+                if (!remainder.isEmpty()) {
+                    // There is tracking info
+                    item.displayName = remainder.replace("_", " ");
+                    item.displayTimestamp = formatTimestamp(potentialTimestamp);
+                } else {
+                    // Only timestamp
+                    item.displayName = formatTimestamp(potentialTimestamp);
+                    item.displayTimestamp = null;
+                }
+                return;
+            }
+        }
+
+        // Fallback to legacy format parsing
         String prefix = "location_logs_";
         if (name.startsWith("gps_")) {
             prefix = "gps_";
@@ -248,6 +277,14 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
 
     private String formatTimestamp(String rawTimestamp) {
         // e.g. 2026-05-17T18-15-09.123+05-30 -> 2026-05-17 18:15:09
+        // or format YYYY-MM-DD.HHmmss or YYYY-MM-DDThhmmss -> YYYY-MM-DD hh:mm:ss
+        if (rawTimestamp.matches("\\d{4}-\\d{2}-\\d{2}[.T]\\d{6}")) {
+            String datePart = rawTimestamp.substring(0, 10);
+            String timePart = rawTimestamp.substring(11, 17);
+            String formattedTime = timePart.substring(0, 2) + ":" + timePart.substring(2, 4) + ":" + timePart.substring(4, 6);
+            return datePart + " " + formattedTime;
+        }
+
         String clean = rawTimestamp;
         int dotIdx = clean.indexOf('.');
         if (dotIdx != -1) clean = clean.substring(0, dotIdx);
