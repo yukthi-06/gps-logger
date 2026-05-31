@@ -422,17 +422,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveSinglePointToFile(Location location) {
         String fileTimestamp = ZonedDateTime.now()
-                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                .replace(":", "-");
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd.HHmmss"));
 
         String infoText = etTrackingInfo.getText().toString().trim();
         String sanitizedInfo = sanitizeFilename(infoText);
         
         String baseName;
         if (!sanitizedInfo.isEmpty()) {
-            baseName = "location_logs_" + fileTimestamp + "_Recorded_Point_" + sanitizedInfo;
+            baseName = "gps_" + fileTimestamp + "_Recorded_Point_" + sanitizedInfo;
         } else {
-            baseName = "location_logs_" + fileTimestamp + "_Recorded_Point";
+            baseName = "gps_" + fileTimestamp + "_Recorded_Point";
         }
 
         List<JSONObject> records = new ArrayList<>();
@@ -697,8 +696,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 1. Prepare common timestamp for filenames
         String fileTimestamp = ZonedDateTime.now()
-                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-                .replace(":", "-");
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd.HHmmss"));
 
         // 2. Prepare user info string (sanitized)
         String infoText = etTrackingInfo.getText().toString().trim();
@@ -706,9 +704,9 @@ public class MainActivity extends AppCompatActivity {
         
         String baseName;
         if (!sanitizedInfo.isEmpty()) {
-            baseName = "location_logs_" + fileTimestamp + "_" + sanitizedInfo;
+            baseName = "gps_" + fileTimestamp + "_" + sanitizedInfo;
         } else {
-            baseName = "location_logs_" + fileTimestamp;
+            baseName = "gps_" + fileTimestamp;
         }
 
         // Read format preferences

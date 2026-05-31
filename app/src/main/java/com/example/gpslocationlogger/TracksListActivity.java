@@ -223,6 +223,9 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
     private void parseTrackItemDetails(TrackItem item) {
         String name = item.baseName;
         String prefix = "location_logs_";
+        if (name.startsWith("gps_")) {
+            prefix = "gps_";
+        }
         if (name.startsWith(prefix)) {
             String remainder = name.substring(prefix.length());
             int underscoreIdx = remainder.indexOf('_');
