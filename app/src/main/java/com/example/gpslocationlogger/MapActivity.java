@@ -340,6 +340,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private void shareTrack() {
+        if (baseName != null && baseName.contains("_Recorded_Point")) {
+            SharePointHelper.showShareOptionsDialog(this, baseName, () -> shareTrackFiles());
+        } else {
+            shareTrackFiles();
+        }
+    }
+
+    private void shareTrackFiles() {
         File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
         File gpxFile = new File(dir, baseName + ".gpx");
         File kmlFile = new File(dir, baseName + ".kml");

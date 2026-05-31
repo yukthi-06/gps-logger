@@ -265,6 +265,14 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
 
     @Override
     public void onShareClick(TrackItem trackItem) {
+        if (trackItem.isRecordedPoint()) {
+            SharePointHelper.showShareOptionsDialog(this, trackItem.baseName, () -> shareTrackFiles(trackItem));
+        } else {
+            shareTrackFiles(trackItem);
+        }
+    }
+
+    private void shareTrackFiles(TrackItem trackItem) {
         File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
         File gpxFile = new File(dir, trackItem.baseName + ".gpx");
         File kmlFile = new File(dir, trackItem.baseName + ".kml");
