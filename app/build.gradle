@@ -57,7 +57,7 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-            def abi = output.getFilter(com.android.build.OutputFile.FilterType.ABI)
+            def abi = output.getFilter("ABI")
             if (abi == null) {
                 // Rename universal APK to standard name expected by CI/CD pipeline
                 if (variant.buildType.name == "debug") {
