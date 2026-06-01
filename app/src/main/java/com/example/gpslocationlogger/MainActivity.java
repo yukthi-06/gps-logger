@@ -113,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isBound = false;
     private boolean isTracking = false;
     private boolean isRecordingPointPending = false;
+    private boolean isStartupPermissionRequest = false;
     private Uri lastSavedUri = null;
     private String lastSavedName = null;
 
@@ -212,6 +213,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Initial UI state
         setTrackingUiState(false);
+
+        // On first use / app launch, check and request permissions immediately
+        requestPermissionsOnStartup();
     }
 
     @Override
@@ -541,6 +545,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Checks whether required permissions are granted, requests them if not. */
     private void checkAndRequestPermission() {
+        isStartupPermissionRequest = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()) {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
@@ -605,17 +610,61 @@ public class MainActivity extends AppCompatActivity {
 
             if (allGranted) {
                 Log.d(TAG, "Permissions granted.");
-                if (isRecordingPointPending) {
+                if (isStartupPermissionRequest) {
+                    isStartupPermissionRequest = false;
+                    Log.d(TAG, "Startup permissions granted. Doing nothing.");
+                } else if (isRecordingPointPending) {
                     isRecordingPointPending = false;
                     recordSinglePoint();
                 } else {
                     startTracking();
                 }
             } else {
+                isStartupPermissionRequest = false;
                 isRecordingPointPending = false;
                 Log.w(TAG, "Permissions denied.");
                 Toast.makeText(this, "Required permissions denied.", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    /** Requests disk and location permissions immediately on app launch. */
+    private void requestPermissionsOnStartup() {
+        isStartupPermissionRequest = true;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                intent.setData(uri);
+                startActivity(intent);
+                return;
+            }
+        }
+
+        List<String> permissionsNeeded = new ArrayList<>();
+        permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+
+        List<String> listPermissionsNeeded = new ArrayList<>();
+        for (String p : permissionsNeeded) {
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(p);
+            }
+        }
+
+        if (!listPermissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    listPermissionsNeeded.toArray(new String[0]),
+                    LOCATION_PERMISSION_REQUEST_CODE);
         }
     }
 
