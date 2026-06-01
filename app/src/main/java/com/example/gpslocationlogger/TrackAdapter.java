@@ -23,6 +23,7 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
     public interface TrackActionListener {
         void onMapClick(TrackItem item);
         void onShareClick(TrackItem item);
+        void onRenameClick(TrackItem item);
         void onDeleteClick(TrackItem item);
     }
 
@@ -78,6 +79,10 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
         holder.btnShare.setOnClickListener(v -> {
             if (listener != null) listener.onShareClick(trackItem);
         });
+
+        holder.btnRename.setOnClickListener(v -> {
+            if (listener != null) listener.onRenameClick(trackItem);
+        });
         
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) listener.onDeleteClick(trackItem);
@@ -96,6 +101,7 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
         TextView tvTrackFiles;
         ImageButton btnMap;
         ImageButton btnShare;
+        ImageButton btnRename;
         ImageButton btnDelete;
 
         public TrackViewHolder(@NonNull View itemView) {
@@ -106,6 +112,7 @@ public class TrackAdapter extends RecyclerView.Adapter<TrackAdapter.TrackViewHol
             tvTrackFiles = itemView.findViewById(R.id.tvTrackFiles);
             btnMap = itemView.findViewById(R.id.btnMap);
             btnShare = itemView.findViewById(R.id.btnShare);
+            btnRename = itemView.findViewById(R.id.btnRename);
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }

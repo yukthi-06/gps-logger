@@ -11,6 +11,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -463,6 +464,155 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
 
         dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.parseColor("#D32F2F"));
         dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#888EAB"));
+    }
+
+    @Override
+    public void onRenameClick(TrackItem trackItem) {
+        String itemType = trackItem.isRecordedPoint() ? "Point" : "Track";
+        
+        final android.widget.EditText input = new android.widget.EditText(this);
+        input.setSingleLine(true);
+        input.setText(getCleanDescriptionForEdit(trackItem));
+        input.setSelection(input.getText().length());
+        input.setPadding((int) (16 * getResources().getDisplayMetrics().density),
+                         (int) (12 * getResources().getDisplayMetrics().density),
+                         (int) (16 * getResources().getDisplayMetrics().density),
+                         (int) (12 * getResources().getDisplayMetrics().density));
+        input.setBackgroundResource(R.drawable.bg_edit_text);
+        input.setHint("Enter description here...");
+        input.setHintTextColor(Color.parseColor("#888EAB"));
+        input.setTextColor(Color.parseColor("#1A1A2E"));
+        input.setTextSize(16);
+        
+        android.widget.FrameLayout container = new android.widget.FrameLayout(this);
+        android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        int marginPx = (int) (20 * getResources().getDisplayMetrics().density);
+        params.leftMargin = marginPx;
+        params.rightMargin = marginPx;
+        params.topMargin = (int) (12 * getResources().getDisplayMetrics().density);
+        params.bottomMargin = (int) (12 * getResources().getDisplayMetrics().density);
+        input.setLayoutParams(params);
+        container.addView(input);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Rename " + itemType)
+                .setMessage("Enter new description:")
+                .setView(container)
+                .setPositiveButton("Rename", (dialogInterface, which) -> {
+                    String newName = input.getText().toString().trim();
+                    String newBaseName = createNewBaseName(trackItem.baseName, newName);
+                    
+                    if (newBaseName.equals(trackItem.baseName)) {
+                        return; // No change
+                    }
+                    
+                    File dir = new File(Environment.getExternalStorageDirectory(), GPS_FOLDER);
+                    
+                    // Check if target file already exists
+                    boolean destinationExists = false;
+                    for (String ext : trackItem.extensions) {
+                        File newFile = new File(dir, newBaseName + ext);
+                        if (newFile.exists()) {
+                            destinationExists = true;
+                            break;
+                        }
+                    }
+                    
+                    if (destinationExists) {
+                        Toast.makeText(TracksListActivity.this, "A " + itemType.toLowerCase() + " with that name already exists.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    boolean success = true;
+                    int renamedCount = 0;
+                    for (String ext : trackItem.extensions) {
+                        File oldFile = new File(dir, trackItem.baseName + ext);
+                        File newFile = new File(dir, newBaseName + ext);
+                        if (oldFile.exists()) {
+                            if (oldFile.renameTo(newFile)) {
+                                renamedCount++;
+                            } else {
+                                success = false;
+                            }
+                        }
+                    }
+                    
+                    if (renamedCount > 0) {
+                        Toast.makeText(TracksListActivity.this, itemType + " renamed successfully", Toast.LENGTH_SHORT).show();
+                        loadTracks();
+                    } else {
+                        Toast.makeText(TracksListActivity.this, "Failed to rename " + itemType.toLowerCase(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(Color.parseColor("#0F3460"));
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#888EAB"));
+    }
+
+    private String getCleanDescriptionForEdit(TrackItem item) {
+        String displayName = item.displayName != null ? item.displayName : item.baseName;
+        if (item.isRecordedPoint()) {
+            if (displayName.startsWith("Recorded Point ")) {
+                return displayName.substring("Recorded Point ".length());
+            } else if ("Recorded Point".equals(displayName) || displayName.contains("Recorded_Point")) {
+                return "";
+            }
+        } else {
+            if (item.displayTimestamp == null && (item.baseName.startsWith("gps_") || item.baseName.startsWith("location_logs_"))) {
+                return "";
+            }
+        }
+        return displayName;
+    }
+
+    private String createNewBaseName(String originalBaseName, String newName) {
+        String sanitizedName = sanitizeFilename(newName);
+        
+        // 1. Handle Recorded Point
+        if (originalBaseName.contains("_Recorded_Point")) {
+            int index = originalBaseName.indexOf("_Recorded_Point");
+            String prefixPart = originalBaseName.substring(0, index);
+            if (sanitizedName.isEmpty()) {
+                return prefixPart + "_Recorded_Point";
+            } else {
+                return prefixPart + "_Recorded_Point_" + sanitizedName;
+            }
+        }
+        
+        // 2. Handle Track with Timestamp
+        String tempName = originalBaseName;
+        String prefix = "";
+        if (tempName.startsWith("gps_")) {
+            prefix = "gps_";
+            tempName = tempName.substring("gps_".length());
+        } else if (tempName.startsWith("location_logs_")) {
+            prefix = "location_logs_";
+            tempName = tempName.substring("location_logs_".length());
+        }
+        
+        if (tempName.length() >= 17) {
+            String potentialTimestamp = tempName.substring(0, 17);
+            if (potentialTimestamp.matches("\\d{4}-\\d{2}-\\d{2}[.T]\\d{6}")) {
+                String prefixPart = prefix + potentialTimestamp;
+                if (sanitizedName.isEmpty()) {
+                    return prefixPart;
+                } else {
+                    return prefixPart + "_" + sanitizedName;
+                }
+            }
+        }
+        
+        // 3. Fallback for custom/legacy names
+        return sanitizedName.isEmpty() ? originalBaseName : sanitizedName;
+    }
+
+    private String sanitizeFilename(String input) {
+        if (input == null || input.isEmpty()) return "";
+        return input.replaceAll("\\s+", "_")
+                    .replaceAll("[^a-zA-Z0-9_-]", "");
     }
 
     @Override
