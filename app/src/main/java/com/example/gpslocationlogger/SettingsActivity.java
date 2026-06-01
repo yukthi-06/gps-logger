@@ -97,6 +97,7 @@ public class SettingsActivity extends AppCompatActivity {
         etMapStyleUrl    = findViewById(R.id.etMapStyleUrl);
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        SettingsHelper.loadSettingsFromJson(this, prefs);
 
         // ── 1. Logging Frequency (Dropdown Spinner) ──
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_spinner, INTERVAL_LABELS);
@@ -120,6 +121,7 @@ public class SettingsActivity extends AppCompatActivity {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     long interval = INTERVALS_MS[position];
                     prefs.edit().putLong(KEY_INTERVAL_MS, interval).apply();
+                    SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
                     updatePreview(interval);
                 }
 
@@ -156,6 +158,7 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 prefs.edit().putString(KEY_MAP_STYLE_URL, s.toString().trim()).apply();
+                SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
             }
         });
 
@@ -176,6 +179,7 @@ public class SettingsActivity extends AppCompatActivity {
             return;
         }
         prefs.edit().putBoolean(key, isChecked).apply();
+        SettingsHelper.saveSettingsToJson(this, prefs);
     }
 
     /** Returns the human-readable label for a given interval in ms. */

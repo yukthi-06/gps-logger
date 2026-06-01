@@ -47,7 +47,7 @@ import java.util.Map;
 public class TracksListActivity extends AppCompatActivity implements TrackAdapter.TrackActionListener {
 
     private static final String TAG = "TracksListActivity";
-    private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
+    private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger/tracks";
     private static final int STORAGE_PERMISSION_CODE = 1002;
 
     private RecyclerView recyclerView;

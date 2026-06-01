@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
      * reliable option is a subfolder inside a well-known public directory
      * such as Downloads, which MediaStore.Downloads handles natively.
      */
-    private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
+    private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger/tracks";
 
     // ── UI ──────────────────────────────────────────────────────────────────
     private Button btnRecordPoint;
@@ -152,6 +152,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Load settings from settings.json if it exists on external storage
+        android.content.SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
+        SettingsHelper.loadSettingsFromJson(this, prefs);
 
         // Bind views
         btnRecordPoint   = findViewById(R.id.btnRecordPoint);

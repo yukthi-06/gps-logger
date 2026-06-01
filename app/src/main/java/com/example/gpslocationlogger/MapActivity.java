@@ -60,7 +60,7 @@ import java.util.regex.Pattern;
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String TAG = "MapActivity";
-    private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
+    private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger/tracks";
     
     private MapView mapView;
     private String baseName;

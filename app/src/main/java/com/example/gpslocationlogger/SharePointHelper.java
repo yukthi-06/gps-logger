@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class SharePointHelper {
     private static final String TAG = "SharePointHelper";
-    private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger";
+    private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger/tracks";
 
     /**
      * Attempts to parse coordinates from the saved files (.gpx, .kml, .json) matching baseName.
