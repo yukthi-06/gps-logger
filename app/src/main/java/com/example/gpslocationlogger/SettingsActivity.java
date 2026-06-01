@@ -62,6 +62,7 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView   tvThresholdTitle;
     private View       dividerIntelligent;
     private SharedPreferences prefs;
+    private boolean    isUpdatingUi = false;
 
     private static final float[] DISTANCES_M = {
             2.0f,
@@ -129,32 +130,19 @@ public class SettingsActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
         spFrequency.setAdapter(adapter);
 
-        long savedInterval = prefs.getLong(KEY_INTERVAL_MS, DEFAULT_INTERVAL_MS);
-        int selectionIndex = 3; // default: 5s (index 3)
-        for (int i = 0; i < INTERVALS_MS.length; i++) {
-            if (INTERVALS_MS[i] == savedInterval) {
-                selectionIndex = i;
-                break;
+        spFrequency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (isUpdatingUi) return;
+                long interval = INTERVALS_MS[position];
+                prefs.edit().putLong(KEY_INTERVAL_MS, interval).apply();
+                SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
+                updatePreview(interval);
             }
-        }
 
-        final int finalIndex = selectionIndex;
-        spFrequency.post(() -> {
-            spFrequency.setSelection(finalIndex, false);
-            spFrequency.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    long interval = INTERVALS_MS[position];
-                    prefs.edit().putLong(KEY_INTERVAL_MS, interval).apply();
-                    SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
-                    updatePreview(interval);
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
-            });
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
-        updatePreview(savedInterval);
 
         // ── 1b. Intelligent Tracking Settings ──
         cbIntelligentTracking = findViewById(R.id.cbIntelligentTracking);
@@ -166,60 +154,35 @@ public class SettingsActivity extends AppCompatActivity {
         distAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
         spDistanceThreshold.setAdapter(distAdapter);
 
-        boolean savedIntelligent = prefs.getBoolean(KEY_INTELLIGENT_TRACKING, false);
-        cbIntelligentTracking.setChecked(savedIntelligent);
-
-        float savedMinDistance = prefs.getFloat(KEY_MIN_DISTANCE_METERS, DEFAULT_MIN_DISTANCE_METERS);
-        int distIndex = 1; // default: 5m (index 1)
-        for (int i = 0; i < DISTANCES_M.length; i++) {
-            if (DISTANCES_M[i] == savedMinDistance) {
-                distIndex = i;
-                break;
+        spDistanceThreshold.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (isUpdatingUi) return;
+                float dist = DISTANCES_M[position];
+                prefs.edit().putFloat(KEY_MIN_DISTANCE_METERS, dist).apply();
+                SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
             }
-        }
-        
-        final int finalDistIndex = distIndex;
-        spDistanceThreshold.post(() -> {
-            spDistanceThreshold.setSelection(finalDistIndex, false);
-            spDistanceThreshold.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    float dist = DISTANCES_M[position];
-                    prefs.edit().putFloat(KEY_MIN_DISTANCE_METERS, dist).apply();
-                    SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
-                }
 
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
-            });
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         // Toggle visibility/state of the threshold controls
         updateIntelligentViewsState(savedIntelligent);
 
         cbIntelligentTracking.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isUpdatingUi) return;
             prefs.edit().putBoolean(KEY_INTELLIGENT_TRACKING, isChecked).apply();
             SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
             updateIntelligentViewsState(isChecked);
         });
 
         // ── 2. Format Selection ──
-        cbJson.setChecked(prefs.getBoolean(KEY_SAVE_JSON, true));
-        cbGpx.setChecked(prefs.getBoolean(KEY_SAVE_GPX, true));
-        cbKml.setChecked(prefs.getBoolean(KEY_SAVE_KML, true));
-
         cbJson.setOnCheckedChangeListener((v, checked) -> handleFormatChange(KEY_SAVE_JSON, checked, cbJson));
         cbGpx.setOnCheckedChangeListener((v, checked) -> handleFormatChange(KEY_SAVE_GPX, checked, cbGpx));
         cbKml.setOnCheckedChangeListener((v, checked) -> handleFormatChange(KEY_SAVE_KML, checked, cbKml));
 
         // ── 3. Map Style URL Settings ──
-        String savedMapStyle = prefs.getString(KEY_MAP_STYLE_URL, DEFAULT_MAP_STYLE_URL);
-        if (savedMapStyle.equals(OLD_DEFAULT_MAP_STYLE_URL)) {
-            savedMapStyle = DEFAULT_MAP_STYLE_URL;
-            prefs.edit().putString(KEY_MAP_STYLE_URL, DEFAULT_MAP_STYLE_URL).apply();
-        }
-        etMapStyleUrl.setText(savedMapStyle);
-
         etMapStyleUrl.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -229,6 +192,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
+                if (isUpdatingUi) return;
                 prefs.edit().putString(KEY_MAP_STYLE_URL, s.toString().trim()).apply();
                 SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
             }
@@ -237,6 +201,64 @@ public class SettingsActivity extends AppCompatActivity {
         // ── 4. Offline Map Cache Settings ──
         btnClearCache = findViewById(R.id.btnClearCache);
         btnClearCache.setOnClickListener(v -> clearOfflineMapCache());
+
+        // Sync view values
+        syncUiWithPreferences();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SettingsHelper.loadSettingsFromJson(this, prefs);
+        syncUiWithPreferences();
+    }
+
+    private void syncUiWithPreferences() {
+        isUpdatingUi = true;
+        try {
+            // Logging frequency spinner
+            long savedInterval = prefs.getLong(KEY_INTERVAL_MS, DEFAULT_INTERVAL_MS);
+            int selectionIndex = 3; // default: 5s (index 3)
+            for (int i = 0; i < INTERVALS_MS.length; i++) {
+                if (INTERVALS_MS[i] == savedInterval) {
+                    selectionIndex = i;
+                    break;
+                }
+            }
+            spFrequency.setSelection(selectionIndex, false);
+            updatePreview(savedInterval);
+
+            // Intelligent Tracking
+            boolean savedIntelligent = prefs.getBoolean(KEY_INTELLIGENT_TRACKING, false);
+            cbIntelligentTracking.setChecked(savedIntelligent);
+
+            float savedMinDistance = prefs.getFloat(KEY_MIN_DISTANCE_METERS, DEFAULT_MIN_DISTANCE_METERS);
+            int distIndex = 1; // default: 5m (index 1)
+            for (int i = 0; i < DISTANCES_M.length; i++) {
+                if (DISTANCES_M[i] == savedMinDistance) {
+                    distIndex = i;
+                    break;
+                }
+            }
+            spDistanceThreshold.setSelection(distIndex, false);
+            updateIntelligentViewsState(savedIntelligent);
+
+            // Format checkboxes
+            cbJson.setChecked(prefs.getBoolean(KEY_SAVE_JSON, true));
+            cbGpx.setChecked(prefs.getBoolean(KEY_SAVE_GPX, true));
+            cbKml.setChecked(prefs.getBoolean(KEY_SAVE_KML, true));
+
+            // Map style URL
+            String savedMapStyle = prefs.getString(KEY_MAP_STYLE_URL, DEFAULT_MAP_STYLE_URL);
+            if (savedMapStyle.equals(OLD_DEFAULT_MAP_STYLE_URL)) {
+                savedMapStyle = DEFAULT_MAP_STYLE_URL;
+            }
+            if (!etMapStyleUrl.getText().toString().equals(savedMapStyle)) {
+                etMapStyleUrl.setText(savedMapStyle);
+            }
+        } finally {
+            isUpdatingUi = false;
+        }
     }
 
     /**
@@ -244,6 +266,7 @@ public class SettingsActivity extends AppCompatActivity {
      * Prevents unchecking if it's the last one selected.
      */
     private void handleFormatChange(String key, boolean isChecked, CheckBox checkBox) {
+        if (isUpdatingUi) return;
         if (!isChecked && !cbJson.isChecked() && !cbGpx.isChecked() && !cbKml.isChecked()) {
             // Revert: can't uncheck the last one
             checkBox.setChecked(true);

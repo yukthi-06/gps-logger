@@ -43,7 +43,7 @@ import java.util.List;
  * 2. In-memory storage of location fixes.
  * 3. A persistent Foreground Notification required by Android.
  */
-public class LocationService extends Service {
+public class LocationService extends Service implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = "LocationService";
     private static final String CHANNEL_ID = "gps_logger_channel_id";
@@ -85,6 +85,9 @@ public class LocationService extends Service {
                 }
             }
         };
+
+        SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
+        prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -239,6 +242,19 @@ public class LocationService extends Service {
         Log.d(TAG, "Service onDestroy()");
         if (isTracking) {
             fusedLocationClient.removeLocationUpdates(locationCallback);
+        }
+        SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
+        prefs.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (SettingsActivity.KEY_INTERVAL_MS.equals(key)) {
+            Log.i(TAG, "SharedPreference changed: key=" + key + ". Re-registering location updates with new interval.");
+            if (isTracking && !isPaused) {
+                fusedLocationClient.removeLocationUpdates(locationCallback);
+                startLocationUpdates();
+            }
         }
     }
 }
