@@ -423,7 +423,8 @@ public class MainActivity extends AppCompatActivity {
     private void saveSinglePointToFile(Location location) {
         String fileTimestamp = ZonedDateTime.now()
                 //.format(DateTimeFormatter.ofPattern("yyyy-MM-dd.HHmmss"));
-                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                .replace(":", "-");
 
         String infoText = etTrackingInfo.getText().toString().trim();
         String sanitizedInfo = sanitizeFilename(infoText);
@@ -698,7 +699,8 @@ public class MainActivity extends AppCompatActivity {
         // 1. Prepare common timestamp for filenames
         String fileTimestamp = ZonedDateTime.now()
                 //.format(DateTimeFormatter.ofPattern("yyyy-MM-dd.HHmmss"));
-                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                .replace(":", "-");
 
         // 2. Prepare user info string (sanitized)
         String infoText = etTrackingInfo.getText().toString().trim();
