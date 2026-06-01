@@ -113,6 +113,84 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- ── Section Intelligent Tracking ───────────────────────────────── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="INTELLIGENT TRACKING"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.15"
+            android:textColor="#888EAB"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="4dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- CheckBox for Toggle -->
+                <CheckBox
+                    android:id="@+id/cbIntelligentTracking"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Enable Intelligent Tracking"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A2E"
+                    android:buttonTint="#0F3460" />
+
+                <!-- Subtitle -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Only records location if distance from previous point exceeds the threshold."
+                    android:textSize="13sp"
+                    android:textColor="#888EAB"
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginStart="32dp" />
+
+                <!-- Divider -->
+                <View
+                    android:id="@+id/dividerIntelligent"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="#EAEDF2" />
+
+                <!-- Title for Threshold -->
+                <TextView
+                    android:id="@+id/tvThresholdTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Minimum Distance Threshold"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A2E"
+                    android:layout_marginBottom="4dp" />
+
+                <!-- Spinner for Distance Threshold -->
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/spDistanceThreshold"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:spinnerMode="dropdown"
+                    android:background="@drawable/bg_spinner"
+                    android:popupBackground="#FFFFFF" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- ── Export Formats card ─────────────────────────────────────────── -->
         <TextView
             android:layout_width="wrap_content"

@@ -36,6 +36,8 @@ public class SettingsHelper {
             json.put(SettingsActivity.KEY_SAVE_GPX, prefs.getBoolean(SettingsActivity.KEY_SAVE_GPX, true));
             json.put(SettingsActivity.KEY_SAVE_KML, prefs.getBoolean(SettingsActivity.KEY_SAVE_KML, true));
             json.put(SettingsActivity.KEY_MAP_STYLE_URL, prefs.getString(SettingsActivity.KEY_MAP_STYLE_URL, SettingsActivity.DEFAULT_MAP_STYLE_URL));
+            json.put(SettingsActivity.KEY_INTELLIGENT_TRACKING, prefs.getBoolean(SettingsActivity.KEY_INTELLIGENT_TRACKING, false));
+            json.put(SettingsActivity.KEY_MIN_DISTANCE_METERS, (double) prefs.getFloat(SettingsActivity.KEY_MIN_DISTANCE_METERS, SettingsActivity.DEFAULT_MIN_DISTANCE_METERS));
 
             try (FileOutputStream fos = new FileOutputStream(file);
                  OutputStreamWriter writer = new OutputStreamWriter(fos)) {
@@ -80,6 +82,12 @@ public class SettingsHelper {
             }
             if (json.has(SettingsActivity.KEY_MAP_STYLE_URL)) {
                 editor.putString(SettingsActivity.KEY_MAP_STYLE_URL, json.getString(SettingsActivity.KEY_MAP_STYLE_URL));
+            }
+            if (json.has(SettingsActivity.KEY_INTELLIGENT_TRACKING)) {
+                editor.putBoolean(SettingsActivity.KEY_INTELLIGENT_TRACKING, json.getBoolean(SettingsActivity.KEY_INTELLIGENT_TRACKING));
+            }
+            if (json.has(SettingsActivity.KEY_MIN_DISTANCE_METERS)) {
+                editor.putFloat(SettingsActivity.KEY_MIN_DISTANCE_METERS, (float) json.getDouble(SettingsActivity.KEY_MIN_DISTANCE_METERS));
             }
 
             editor.apply();

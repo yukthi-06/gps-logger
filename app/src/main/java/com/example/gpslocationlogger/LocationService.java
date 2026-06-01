@@ -127,6 +127,29 @@ public class LocationService extends Service {
         double lon = location.getLongitude();
         String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
+        // Intelligent Tracking Distance Check
+        SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
+        boolean intelligentEnabled = prefs.getBoolean(SettingsActivity.KEY_INTELLIGENT_TRACKING, false);
+        if (intelligentEnabled && !locationRecords.isEmpty()) {
+            try {
+                JSONObject lastRecord = locationRecords.get(locationRecords.size() - 1);
+                double lastLat = lastRecord.getDouble("latitude");
+                double lastLon = lastRecord.getDouble("longitude");
+
+                float[] distanceResult = new float[1];
+                Location.distanceBetween(lastLat, lastLon, lat, lon, distanceResult);
+                float distanceMeters = distanceResult[0];
+
+                float minDistanceMeters = prefs.getFloat(SettingsActivity.KEY_MIN_DISTANCE_METERS, SettingsActivity.DEFAULT_MIN_DISTANCE_METERS);
+                if (distanceMeters < minDistanceMeters) {
+                    Log.i(TAG, "Skipping point: Distance from last point is too small (" + distanceMeters + "m < " + minDistanceMeters + "m)");
+                    return;
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "Error checking distance from last recorded point", e);
+            }
+        }
+
         try {
             JSONObject record = new JSONObject();
             record.put("latitude", lat);

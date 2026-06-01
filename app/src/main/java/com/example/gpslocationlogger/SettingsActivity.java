@@ -44,6 +44,11 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String DEFAULT_MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
     public static final String OLD_DEFAULT_MAP_STYLE_URL = "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json";
 
+    /** Intelligent Tracking Keys and Defaults. */
+    public static final String KEY_INTELLIGENT_TRACKING = "intelligent_tracking";
+    public static final String KEY_MIN_DISTANCE_METERS = "min_distance_meters";
+    public static final float DEFAULT_MIN_DISTANCE_METERS = 5.0f;
+
     /** Default interval: 5 seconds. */
     public static final long DEFAULT_INTERVAL_MS = 5_000L;
 
@@ -52,7 +57,27 @@ public class SettingsActivity extends AppCompatActivity {
     private CheckBox   cbJson, cbGpx, cbKml;
     private EditText   etMapStyleUrl;
     private Button     btnClearCache;
+    private CheckBox   cbIntelligentTracking;
+    private Spinner    spDistanceThreshold;
+    private TextView   tvThresholdTitle;
+    private View       dividerIntelligent;
     private SharedPreferences prefs;
+
+    private static final float[] DISTANCES_M = {
+            2.0f,
+            5.0f,
+            10.0f,
+            20.0f,
+            50.0f
+    };
+
+    private static final String[] DISTANCE_LABELS = {
+            "2 meters",
+            "5 meters (Default)",
+            "10 meters",
+            "20 meters",
+            "50 meters"
+    };
 
     private static final long[] INTERVALS_MS = {
             1_000L,
@@ -130,6 +155,53 @@ public class SettingsActivity extends AppCompatActivity {
             });
         });
         updatePreview(savedInterval);
+
+        // ── 1b. Intelligent Tracking Settings ──
+        cbIntelligentTracking = findViewById(R.id.cbIntelligentTracking);
+        spDistanceThreshold = findViewById(R.id.spDistanceThreshold);
+        tvThresholdTitle = findViewById(R.id.tvThresholdTitle);
+        dividerIntelligent = findViewById(R.id.dividerIntelligent);
+
+        ArrayAdapter<String> distAdapter = new ArrayAdapter<>(this, R.layout.item_spinner, DISTANCE_LABELS);
+        distAdapter.setDropDownViewResource(R.layout.item_spinner_dropdown);
+        spDistanceThreshold.setAdapter(distAdapter);
+
+        boolean savedIntelligent = prefs.getBoolean(KEY_INTELLIGENT_TRACKING, false);
+        cbIntelligentTracking.setChecked(savedIntelligent);
+
+        float savedMinDistance = prefs.getFloat(KEY_MIN_DISTANCE_METERS, DEFAULT_MIN_DISTANCE_METERS);
+        int distIndex = 1; // default: 5m (index 1)
+        for (int i = 0; i < DISTANCES_M.length; i++) {
+            if (DISTANCES_M[i] == savedMinDistance) {
+                distIndex = i;
+                break;
+            }
+        }
+        
+        final int finalDistIndex = distIndex;
+        spDistanceThreshold.post(() -> {
+            spDistanceThreshold.setSelection(finalDistIndex, false);
+            spDistanceThreshold.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    float dist = DISTANCES_M[position];
+                    prefs.edit().putFloat(KEY_MIN_DISTANCE_METERS, dist).apply();
+                    SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        });
+
+        // Toggle visibility/state of the threshold controls
+        updateIntelligentViewsState(savedIntelligent);
+
+        cbIntelligentTracking.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            prefs.edit().putBoolean(KEY_INTELLIGENT_TRACKING, isChecked).apply();
+            SettingsHelper.saveSettingsToJson(SettingsActivity.this, prefs);
+            updateIntelligentViewsState(isChecked);
+        });
 
         // ── 2. Format Selection ──
         cbJson.setChecked(prefs.getBoolean(KEY_SAVE_JSON, true));
@@ -255,5 +327,11 @@ public class SettingsActivity extends AppCompatActivity {
                 Toast.makeText(SettingsActivity.this, "Failed to load offline regions: " + error, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void updateIntelligentViewsState(boolean enabled) {
+        tvThresholdTitle.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        spDistanceThreshold.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        dividerIntelligent.setVisibility(enabled ? View.VISIBLE : View.GONE);
     }
 }
