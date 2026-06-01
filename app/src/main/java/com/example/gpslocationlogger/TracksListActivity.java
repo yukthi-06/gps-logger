@@ -593,15 +593,19 @@ public class TracksListActivity extends AppCompatActivity implements TrackAdapte
             tempName = tempName.substring("location_logs_".length());
         }
         
-        if (tempName.length() >= 17) {
-            String potentialTimestamp = tempName.substring(0, 17);
-            if (potentialTimestamp.matches("\\d{4}-\\d{2}-\\d{2}[.T]\\d{6}")) {
-                String prefixPart = prefix + potentialTimestamp;
-                if (sanitizedName.isEmpty()) {
-                    return prefixPart;
-                } else {
-                    return prefixPart + "_" + sanitizedName;
-                }
+        if (!prefix.isEmpty()) {
+            int firstUnderscore = tempName.indexOf('_');
+            String timestampPart;
+            if (firstUnderscore != -1) {
+                timestampPart = tempName.substring(0, firstUnderscore);
+            } else {
+                timestampPart = tempName;
+            }
+            String prefixPart = prefix + timestampPart;
+            if (sanitizedName.isEmpty()) {
+                return prefixPart;
+            } else {
+                return prefixPart + "_" + sanitizedName;
             }
         }
         
