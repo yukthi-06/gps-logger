@@ -55,11 +55,19 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-//    applicationVariants.all { variant ->
-//        variant.outputs.all {
-//            outputFileName = "gps-logger-${variant.name}-${new Date().format('yyyyMMdd-HHmmss')}.apk"
-//        }
-//    }	
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def abi = output.getFilter(com.android.build.OutputFile.FilterType.ABI)
+            if (abi == null) {
+                // Rename universal APK to standard name expected by CI/CD pipeline
+                if (variant.buildType.name == "debug") {
+                    outputFileName = "app-debug.apk"
+                } else if (variant.buildType.name == "release") {
+                    outputFileName = "app-release.apk"
+                }
+            }
+        }
+    }
 }
 
 dependencies {
