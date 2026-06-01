@@ -168,8 +168,6 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         // Toggle visibility/state of the threshold controls
-        updateIntelligentViewsState(savedIntelligent);
-
         cbIntelligentTracking.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isUpdatingUi) return;
             prefs.edit().putBoolean(KEY_INTELLIGENT_TRACKING, isChecked).apply();
