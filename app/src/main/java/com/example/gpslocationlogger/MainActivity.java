@@ -612,7 +612,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Permissions granted.");
                 if (isStartupPermissionRequest) {
                     isStartupPermissionRequest = false;
-                    Log.d(TAG, "Startup permissions granted. Doing nothing.");
+                    Log.d(TAG, "Startup permissions granted. Checking for file access.");
+                    checkAndRequestFileAccessStartup();
                 } else if (isRecordingPointPending) {
                     isRecordingPointPending = false;
                     recordSinglePoint();
@@ -631,16 +632,6 @@ public class MainActivity extends AppCompatActivity {
     /** Requests disk and location permissions immediately on app launch. */
     private void requestPermissionsOnStartup() {
         isStartupPermissionRequest = true;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                Uri uri = Uri.fromParts("package", getPackageName(), null);
-                intent.setData(uri);
-                startActivity(intent);
-                return;
-            }
-        }
 
         List<String> permissionsNeeded = new ArrayList<>();
         permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -665,6 +656,20 @@ public class MainActivity extends AppCompatActivity {
                     this,
                     listPermissionsNeeded.toArray(new String[0]),
                     LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            // Runtime permissions already granted; check file access permission
+            checkAndRequestFileAccessStartup();
+        }
+    }
+
+    private void checkAndRequestFileAccessStartup() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                intent.setData(uri);
+                startActivity(intent);
+            }
         }
     }
 
