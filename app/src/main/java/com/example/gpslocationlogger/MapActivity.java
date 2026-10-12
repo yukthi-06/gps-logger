@@ -4,7 +4,11 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -257,54 +261,32 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         .withLineWidth(5.0f);
                 lineManager.create(lineOptions);
 
-                // --- Start / End markers ---
+                // --- Start / End markers (bitmap icons with S / E letters) ---
                 LatLng startPoint = points.get(0);
                 LatLng endPoint   = points.get(points.size() - 1);
 
-                CircleManager markerCircleManager = new CircleManager(mapView, mapLibreMap, style);
+                // Build bitmap icons and register them in the map style
+                Bitmap startBitmap = createMarkerBitmap("S", Color.parseColor("#388E3C"));
+                Bitmap endBitmap   = createMarkerBitmap("E", Color.parseColor("#B71C1C"));
+                style.addImage("marker-start", startBitmap);
+                style.addImage("marker-end",   endBitmap);
 
-                // Start marker circle (green)
-                markerCircleManager.create(new CircleOptions()
-                        .withLatLng(startPoint)
-                        .withCircleColor("#388E3C")
-                        .withCircleRadius(14.0f)
-                        .withCircleStrokeColor("#FFFFFF")
-                        .withCircleStrokeWidth(2.0f));
-
-                // End marker circle (dark red)
-                markerCircleManager.create(new CircleOptions()
-                        .withLatLng(endPoint)
-                        .withCircleColor("#B71C1C")
-                        .withCircleRadius(14.0f)
-                        .withCircleStrokeColor("#FFFFFF")
-                        .withCircleStrokeWidth(2.0f));
-
-                // Overlay 'S' and 'E' letters using SymbolManager
+                // Place icons using SymbolManager
                 SymbolManager symbolManager = new SymbolManager(mapView, mapLibreMap, style);
                 symbolManager.setIconAllowOverlap(true);
                 symbolManager.setTextAllowOverlap(true);
 
-                // 'S' label on start marker
                 symbolManager.create(new SymbolOptions()
                         .withLatLng(startPoint)
-                        .withTextField("S")
-                        .withTextSize(13.0f)
-                        .withTextColor("#FFFFFF")
-                        .withTextHaloColor("#388E3C")
-                        .withTextHaloWidth(0.5f)
-                        .withTextJustify("center")
-                        .withTextAnchor("center"));
+                        .withIconImage("marker-start")
+                        .withIconSize(1.0f)
+                        .withIconAnchor("center"));
 
-                // 'E' label on end marker
                 symbolManager.create(new SymbolOptions()
                         .withLatLng(endPoint)
-                        .withTextField("E")
-                        .withTextSize(13.0f)
-                        .withTextColor("#FFFFFF")
-                        .withTextHaloColor("#B71C1C")
-                        .withTextHaloWidth(0.5f)
-                        .withTextJustify("center")
-                        .withTextAnchor("center"));
+                        .withIconImage("marker-end")
+                        .withIconSize(1.0f)
+                        .withIconAnchor("center"));
             }
 
             // Zoom to fit the bounding box with 100px padding
@@ -314,6 +296,46 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             Log.e(TAG, "Failed to load map data", e);
             Toast.makeText(this, "Failed to parse track data.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Creates a circular Bitmap marker with the given letter painted in white at the center.
+     *
+     * @param letter     Single character to display (e.g. "S" or "E")
+     * @param circleColor Filled circle background color (ARGB int)
+     * @return           Bitmap ready to be added as a map style image
+     */
+    private Bitmap createMarkerBitmap(String letter, int circleColor) {
+        int size = 72; // px — sufficient for map icon clarity
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        // Draw filled circle
+        Paint circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        circlePaint.setColor(circleColor);
+        circlePaint.setStyle(Paint.Style.FILL);
+        float radius = size / 2.0f - 3;
+        canvas.drawCircle(size / 2.0f, size / 2.0f, radius, circlePaint);
+
+        // Draw white stroke
+        Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        strokePaint.setColor(Color.WHITE);
+        strokePaint.setStyle(Paint.Style.STROKE);
+        strokePaint.setStrokeWidth(4f);
+        canvas.drawCircle(size / 2.0f, size / 2.0f, radius, strokePaint);
+
+        // Draw the letter centered
+        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setColor(Color.WHITE);
+        textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        textPaint.setTextSize(size * 0.45f);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        // Vertically center: baseline = center + half cap-height
+        Paint.FontMetrics fm = textPaint.getFontMetrics();
+        float textY = size / 2.0f - (fm.ascent + fm.descent) / 2.0f;
+        canvas.drawText(letter, size / 2.0f, textY, textPaint);
+
+        return bitmap;
     }
 
     private LatLngBounds ensureMinBoundsSize(LatLngBounds bounds, double minSizeMeters) {
