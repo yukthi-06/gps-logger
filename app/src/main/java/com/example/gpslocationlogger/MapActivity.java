@@ -38,6 +38,8 @@ import org.maplibre.android.plugins.annotation.LineManager;
 import org.maplibre.android.plugins.annotation.LineOptions;
 import org.maplibre.android.plugins.annotation.CircleManager;
 import org.maplibre.android.plugins.annotation.CircleOptions;
+import org.maplibre.android.plugins.annotation.SymbolManager;
+import org.maplibre.android.plugins.annotation.SymbolOptions;
 import org.maplibre.android.offline.OfflineManager;
 import org.maplibre.android.offline.OfflineRegion;
 import org.maplibre.android.offline.OfflineRegionError;
@@ -254,6 +256,55 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         .withLineColor("#D32F2F") // Red color
                         .withLineWidth(5.0f);
                 lineManager.create(lineOptions);
+
+                // --- Start / End markers ---
+                LatLng startPoint = points.get(0);
+                LatLng endPoint   = points.get(points.size() - 1);
+
+                CircleManager markerCircleManager = new CircleManager(mapView, mapLibreMap, style);
+
+                // Start marker circle (green)
+                markerCircleManager.create(new CircleOptions()
+                        .withLatLng(startPoint)
+                        .withCircleColor("#388E3C")
+                        .withCircleRadius(14.0f)
+                        .withCircleStrokeColor("#FFFFFF")
+                        .withCircleStrokeWidth(2.0f));
+
+                // End marker circle (dark red)
+                markerCircleManager.create(new CircleOptions()
+                        .withLatLng(endPoint)
+                        .withCircleColor("#B71C1C")
+                        .withCircleRadius(14.0f)
+                        .withCircleStrokeColor("#FFFFFF")
+                        .withCircleStrokeWidth(2.0f));
+
+                // Overlay 'S' and 'E' letters using SymbolManager
+                SymbolManager symbolManager = new SymbolManager(mapView, mapLibreMap, style);
+                symbolManager.setIconAllowOverlap(true);
+                symbolManager.setTextAllowOverlap(true);
+
+                // 'S' label on start marker
+                symbolManager.create(new SymbolOptions()
+                        .withLatLng(startPoint)
+                        .withTextField("S")
+                        .withTextSize(13.0f)
+                        .withTextColor("#FFFFFF")
+                        .withTextHaloColor("#388E3C")
+                        .withTextHaloWidth(0.5f)
+                        .withTextJustify("center")
+                        .withTextAnchor("center"));
+
+                // 'E' label on end marker
+                symbolManager.create(new SymbolOptions()
+                        .withLatLng(endPoint)
+                        .withTextField("E")
+                        .withTextSize(13.0f)
+                        .withTextColor("#FFFFFF")
+                        .withTextHaloColor("#B71C1C")
+                        .withTextHaloWidth(0.5f)
+                        .withTextJustify("center")
+                        .withTextAnchor("center"));
             }
 
             // Zoom to fit the bounding box with 100px padding
