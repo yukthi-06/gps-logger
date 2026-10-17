@@ -1,17 +1,21 @@
 package com.example.gpslocationlogger;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,11 +25,21 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import androidx.core.content.FileProvider;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -67,6 +81,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private static final String TAG = "MapActivity";
     private static final String GPS_FOLDER = "Vypeensoft/GPS_Location_Logger/tracks";
+    private static final int REQUEST_LOCATION_PERMISSION = 101;
     
     private MapView mapView;
     private String baseName;
@@ -77,6 +92,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private LinearLayout llDownloadProgress;
     private TextView tvDownloadStatus;
     private ProgressBar pbDownload;
+
+    // Retrace / Navigation mode
+    private LinearLayout btnRetraceRoute;
+    private LinearLayout btnStopNavigation;
+    private LinearLayout llNavStatus;
+    private boolean isRetracing = false;
+    private CircleManager locationDotManager;
+    private org.maplibre.android.plugins.annotation.Circle locationDot;
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
+    private MapLibreMap activeMap;  // held for retrace mode
+    private Style activeStyle;      // held for retrace mode
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,10 +140,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         llDownloadProgress = findViewById(R.id.llDownloadProgress);
         tvDownloadStatus = findViewById(R.id.tvDownloadStatus);
         pbDownload = findViewById(R.id.pbDownload);
+        btnRetraceRoute   = findViewById(R.id.btnRetraceRoute);
+        btnStopNavigation = findViewById(R.id.btnStopNavigation);
+        llNavStatus       = findViewById(R.id.llNavStatus);
         
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         findViewById(R.id.btnShareMap).setOnClickListener(v -> shareTrack());
         findViewById(R.id.btnDeleteMap).setOnClickListener(v -> deleteTrack());
         findViewById(R.id.btnDownloadMap).setOnClickListener(v -> downloadOfflineMap());
+        btnRetraceRoute.setOnClickListener(v -> onRetraceClicked());
+        btnStopNavigation.setOnClickListener(v -> stopRetraceMode());
 
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
@@ -126,6 +160,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(@NonNull MapLibreMap mapLibreMap) {
         // Allow user to zoom in up to level 24.0 (beyond default limits)
         mapLibreMap.setMaxZoomPreference(24.0);
+        activeMap = mapLibreMap;
 
         // Set up did-fail listener to fall back to local asset style if offline and not cached
         mapView.addOnDidFailLoadingMapListener(new MapView.OnDidFailLoadingMapListener() {
@@ -140,6 +175,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     runOnUiThread(() -> {
                         mapLibreMap.setStyle(new Style.Builder().fromUri("asset://osm_style.json"), style -> {
                             styleLoaded = true;
+                            activeStyle = style;
                             if (baseName != null) {
                                 loadTrackData(mapLibreMap, style);
                             }
@@ -152,6 +188,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // Attempt loading primary configured map style
         mapLibreMap.setStyle(new Style.Builder().fromUri(styleUrl), style -> {
             styleLoaded = true;
+            activeStyle = style;
             if (baseName != null) {
                 loadTrackData(mapLibreMap, style);
             } else {
@@ -295,6 +332,145 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         } catch (Exception e) {
             Log.e(TAG, "Failed to load map data", e);
             Toast.makeText(this, "Failed to parse track data.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Retrace / Navigation mode
+    // -------------------------------------------------------------------------
+
+    private void onRetraceClicked() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION_PERMISSION);
+            return;
+        }
+        startRetraceMode();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_LOCATION_PERMISSION
+                && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startRetraceMode();
+        } else {
+            Toast.makeText(this, "Location permission needed for navigation.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void startRetraceMode() {
+        if (activeMap == null || activeStyle == null) {
+            Toast.makeText(this, "Map not ready yet.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        isRetracing = true;
+
+        // Swap buttons
+        btnRetraceRoute.setVisibility(View.GONE);
+        btnStopNavigation.setVisibility(View.VISIBLE);
+        llNavStatus.setVisibility(View.VISIBLE);
+
+        // Create the live-location dot manager
+        locationDotManager = new CircleManager(mapView, activeMap, activeStyle);
+
+        // Set up location updates (high accuracy, every 2 seconds)
+        LocationRequest locationRequest = new LocationRequest.Builder(
+                Priority.PRIORITY_HIGH_ACCURACY, 2000L)
+                .setMinUpdateIntervalMillis(1000L)
+                .build();
+
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult result) {
+                Location loc = result.getLastLocation();
+                if (loc != null) {
+                    updateLocationDot(new LatLng(loc.getLatitude(), loc.getLongitude()));
+                }
+            }
+        };
+
+        try {
+            fusedLocationClient.requestLocationUpdates(
+                    locationRequest, locationCallback, Looper.getMainLooper());
+            // Immediately move camera to last known location if available
+            fusedLocationClient.getLastLocation().addOnSuccessListener(this, loc -> {
+                if (loc != null) {
+                    LatLng pos = new LatLng(loc.getLatitude(), loc.getLongitude());
+                    updateLocationDot(pos);
+                    activeMap.animateCamera(
+                            CameraUpdateFactory.newLatLngZoom(pos, 17.0));
+                }
+            });
+        } catch (SecurityException e) {
+            Log.e(TAG, "Location permission missing", e);
+        }
+
+        // Keep screen on while driving/navigating
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        Toast.makeText(this, "Navigation started. Follow the red route.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void stopRetraceMode() {
+        isRetracing = false;
+
+        // Clear keep-screen-on flag
+        getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        // Stop GPS updates
+        if (locationCallback != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+            locationCallback = null;
+        }
+
+        // Remove the live dot
+        if (locationDotManager != null) {
+            locationDotManager.deleteAll();
+            locationDotManager = null;
+            locationDot = null;
+        }
+
+        // Restore UI
+        btnStopNavigation.setVisibility(View.GONE);
+        llNavStatus.setVisibility(View.GONE);
+        btnRetraceRoute.setVisibility(View.VISIBLE);
+
+        // Zoom back out to show full track
+        if (activeMap != null && trackBounds != null) {
+            activeMap.easeCamera(CameraUpdateFactory.newLatLngBounds(trackBounds, 100));
+        }
+    }
+
+    /**
+     * Places or moves the cyan live-location dot on the map.
+     */
+    private void updateLocationDot(LatLng position) {
+        if (!isRetracing || locationDotManager == null) return;
+
+        if (locationDot == null) {
+            // First fix — create the dot
+            locationDot = locationDotManager.create(new CircleOptions()
+                    .withLatLng(position)
+                    .withCircleColor("#00BCD4")       // cyan
+                    .withCircleRadius(12.0f)
+                    .withCircleStrokeColor("#FFFFFF")
+                    .withCircleStrokeWidth(3.0f)
+                    .withCircleOpacity(0.95f));
+        } else {
+            // Subsequent updates — move the dot
+            locationDot.setLatLng(position);
+            locationDotManager.update(locationDot);
+        }
+
+        // Camera follows user
+        if (activeMap != null) {
+            activeMap.animateCamera(
+                    CameraUpdateFactory.newLatLngZoom(position, 17.0));
         }
     }
 
@@ -680,6 +856,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     protected void onStop() {
         super.onStop();
         if (mapView != null) mapView.onStop();
+        // Stop navigation if app goes to background
+        if (isRetracing) stopRetraceMode();
     }
 
     @Override

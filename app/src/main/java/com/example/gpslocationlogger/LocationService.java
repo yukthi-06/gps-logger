@@ -58,6 +58,7 @@ public class LocationService extends Service implements SharedPreferences.OnShar
     private boolean isTracking = false;
     private boolean isPaused = false;
     private long lastLocationTimeMillis = 0;
+    private Location latestLocation = null;
 
     /**
      * Interface for MainActivity to bind and get live data.
@@ -126,6 +127,14 @@ public class LocationService extends Service implements SharedPreferences.OnShar
     }
 
     private void handleNewLocation(Location location) {
+        latestLocation = location;
+        lastLocationTimeMillis = System.currentTimeMillis();
+
+        if (isPaused) {
+            Log.d(TAG, "Logging is paused by user. Skipping file record.");
+            return;
+        }
+
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
@@ -145,7 +154,7 @@ public class LocationService extends Service implements SharedPreferences.OnShar
 
                 float minDistanceMeters = prefs.getFloat(SettingsActivity.KEY_MIN_DISTANCE_METERS, SettingsActivity.DEFAULT_MIN_DISTANCE_METERS);
                 if (distanceMeters < minDistanceMeters) {
-                    Log.i(TAG, "Skipping point: Distance from last point is too small (" + distanceMeters + "m < " + minDistanceMeters + "m)");
+                    Log.i(TAG, "Skipping point for file logging: Distance from last point is too small (" + distanceMeters + "m < " + minDistanceMeters + "m)");
                     return;
                 }
             } catch (JSONException e) {
@@ -158,7 +167,6 @@ public class LocationService extends Service implements SharedPreferences.OnShar
             record.put("latitude", lat);
             record.put("longitude", lon);
             record.put("timestamp", time);
-            lastLocationTimeMillis = System.currentTimeMillis();
             locationRecords.add(record);
 
             // Update notification with count
@@ -215,6 +223,7 @@ public class LocationService extends Service implements SharedPreferences.OnShar
         stopSelf();
         isTracking = false;
         isPaused = false;
+        latestLocation = null;
         lastLocationTimeMillis = 0;
         locationRecords.clear();
     }
@@ -225,11 +234,12 @@ public class LocationService extends Service implements SharedPreferences.OnShar
 
     public void setPaused(boolean paused) {
         isPaused = paused;
-        if (isPaused) {
-            fusedLocationClient.removeLocationUpdates(locationCallback);
-        } else {
-            startLocationUpdates();
-        }
+        // Do NOT remove location updates.
+        // Pausing is for writing to file only; GPS location activity continues.
+    }
+
+    public Location getLatestLocation() {
+        return latestLocation;
     }
 
     public long getLastLocationTimeMillis() {
@@ -251,7 +261,7 @@ public class LocationService extends Service implements SharedPreferences.OnShar
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (SettingsActivity.KEY_INTERVAL_MS.equals(key)) {
             Log.i(TAG, "SharedPreference changed: key=" + key + ". Re-registering location updates with new interval.");
-            if (isTracking && !isPaused) {
+            if (isTracking) {
                 fusedLocationClient.removeLocationUpdates(locationCallback);
                 startLocationUpdates();
             }
