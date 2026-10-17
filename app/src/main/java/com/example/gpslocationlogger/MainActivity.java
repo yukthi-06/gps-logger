@@ -740,7 +740,10 @@ public class MainActivity extends AppCompatActivity {
         statusBar.setBackgroundColor(statusColor);
         tvStatus.setText(statusText);
 
-        if (!records.isEmpty()) {
+        Location latestLoc = locationService.getLatestLocation();
+        if (latestLoc != null) {
+            tvCoordinates.setText(String.format("Lat: %.6f   Lon: %.6f", latestLoc.getLatitude(), latestLoc.getLongitude()));
+        } else if (!records.isEmpty()) {
             JSONObject last = records.get(records.size() - 1);
             try {
                 double lat = last.getDouble("latitude");

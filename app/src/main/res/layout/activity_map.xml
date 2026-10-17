@@ -124,6 +124,92 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <!-- Re-trace Route Button (normal view mode) -->
+        <LinearLayout
+            android:id="@+id/btnRetraceRoute"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_btn_retrace"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="4dp">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_menu_mylocation"
+                app:tint="#FFFFFF"
+                android:contentDescription="Re-trace route" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Re-trace this Route"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.04" />
+        </LinearLayout>
+
+        <!-- Stop Navigation Button (shown only in retrace/navigation mode) -->
+        <LinearLayout
+            android:id="@+id/btnStopNavigation"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_btn_stop_nav"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="4dp"
+            android:visibility="gone">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="#FFFFFF"
+                android:contentDescription="Stop navigation" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Stop Navigation"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.04" />
+        </LinearLayout>
+
+        <!-- Navigation status bar (visible only in retrace mode) -->
+        <LinearLayout
+            android:id="@+id/llNavStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:background="#CC1565C0"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="6dp"
+            android:visibility="gone">
+            <TextView
+                android:id="@+id/tvNavStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="● Navigation active — following your location"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
         <!-- Download Progress Overlay -->
         <LinearLayout
             android:id="@+id/llDownloadProgress"
